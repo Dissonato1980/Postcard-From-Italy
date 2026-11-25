@@ -1,0 +1,9 @@
+Voci del superboss (Er Bestione) - metti qui i file audio, in formato MP3.
+Se un file manca, il gioco lo salta senza problemi.
+
+  entrata.mp3     - quando arriva l'ultima ondata
+  frase1.mp3 ... frase6.mp3 - frasi/epiteti ripetuti ogni 5-8 secondi mentre cammina (scelta a caso)
+  sconfitta.mp3   - quando viene sconfitto
+
+Consigli: file brevi (1-3 secondi), volume normalizzato, MP3 a 96-128 kbps.
+Dopo aver aggiunto i file, ricarica la cartella su Netlify e aumenta VERSION in sw.js.
