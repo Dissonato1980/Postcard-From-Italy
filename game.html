@@ -2004,7 +2004,7 @@ var SND = (function () {
     sfx('ondata_inizio', 500);
     if (boss || (stageIdx === STAGES.length - 1 && wave === MAXW)) setTimeout(function () { sfx('boss_arrivo', 500); }, 700);
   }
-  var spawnLane = 1, LANE = 8, GATE = 0.28, gates = [];
+  var spawnLane = 1, LANE = 8, GATE = 0.28, gates = [], SAFE_D = 96;
   /* tourists come out of a monument along the road (about a third of the way) */
   function buildGates() {
     var mons = stage.monuments.filter(function (m) { return !OBSDEF[m.key]; });
@@ -2030,7 +2030,7 @@ var SND = (function () {
     var sc = d.friend ? 1 : en.t === 1 ? hpScale : 1 + (hpScale - 1) * 0.5, hp = Math.round(d.hp * sc * (d.friend ? 1 : (R.hpMul || 1)));
     enemies.push({
       kind: en.k, tier: en.t, def: d, friend: !!d.friend, pay: d.pay || 0, atk: (ATK[en.k] || 0) * ATKT[en.t - 1], hp: hp, max: hp, speed: d.speed * (d.friend ? 1 : R.speedMul * Math.min(1, 0.72 + wave * 0.04)), reward: Math.round(d.reward * (en.k === 'piccione' && en.t === 1 ? 1 : 1.4)), r: d.r, hitR: d.r * 0.5,
-      color: ECOL[en.k], d: start, pi: pi, x: PS[pi].pts[0].x, y: PS[pi].pts[0].y, slowT: 0, stopT: 0, boostT: 0, boostMul: 1,
+      color: ECOL[en.k], d: start, pi: pi, x: PS[pi].pts[0].x, y: PS[pi].pts[0].y, slowT: 0, stopT: 0, boostT: 0, boostMul: 1, safe: !d.friend,
       honkT: d.honk ? d.honk.every * 0.5 : 0, seen: {}, ph: Math.random() * 10, face: 1, dead: false, lane: lane, big: en.t === 3
     });
     if (d.court) for (var q = 0; q < d.court; q++) spawn({ k: 'piccione', t: 1 }, -16 * (q + 1), pi, lane);
@@ -2059,7 +2059,7 @@ var SND = (function () {
     /* special moves never freeze the hordes: no stop */
   }
   function spEnemies(x, y, r, air) {
-    return enemies.filter(function (e) { return !e.dead && !e.friend && e.x >= 0 && (air || !e.def.flying) && Math.hypot(e.x - x, e.y - y) <= r + e.r * 0.4; });
+    return enemies.filter(function (e) { return !e.dead && !e.friend && e.x >= 0 && !e.safe && (air || !e.def.flying) && Math.hypot(e.x - x, e.y - y) <= r + e.r * 0.4; });
   }
   function spRing(x, y, r0, r1, color, life, w) { spfx.push({ k: 'sring', x: x, y: y, r0: r0, r1: r1, t: 0, life: life || 0.5, color: color, w: w || 5 }); }
   /* SPSTORN-BEGIN */
@@ -2093,7 +2093,7 @@ var SND = (function () {
       spRing(t.x, t.y, 15, 125, '#8a90b8', 0.5, 8); spRing(t.x, t.y, 10, 95, '#ffffff', 0.4, 4); spfx.push({ k: 'spin', x: t.x, y: t.y, t: 0, life: 0.55, r: 118 });
       sfx('gladiatore_colpo', 0); ok = true;
     } else if (ty === 'vigile') {
-      cand = enemies.filter(function (e) { return !e.dead && !e.friend && e.x >= 0 && !e.def.flying; });
+      cand = enemies.filter(function (e) { return !e.dead && !e.friend && e.x >= 0 && !e.safe && !e.def.flying; });
       if (!cand.length) { flash('No enemies in range.'); return false; }
       cand.forEach(function (e) { e.slowMul = spBoss(e) ? 0.6 : 0.25; e.slowT = Math.max(e.slowT, spBoss(e) ? 2 : 3.2 + 0.4 * (lv - 1)); spRing(e.x, e.y, 6, 26, '#3a5ca8', 0.45, 3); });
       spRing(t.x, t.y, 20, Math.max(W, H), '#3a5ca8', 0.9, 9); sfx('vigile_alt', 0); ok = true;
@@ -2101,7 +2101,7 @@ var SND = (function () {
       cand = spEnemies(t.x, t.y, 125, true);
       var mons = monuments.filter(function (m) { return !m.dead && (m.prot || m.trash) && distToRect(t.x, t.y, m) <= 170; });
       if (!cand.length && !mons.length) { flash('No enemies in range.'); return false; }
-      cand.forEach(function (e) { spHit(e, 25 * mul, 'netturbino', lv, 0); if (!e.dead && !e.def.flying && !spBoss(e) && e.tier < 3) e.d = Math.max(0, e.d - 110); });
+      cand.forEach(function (e) { spHit(e, 25 * mul, 'netturbino', lv, 0); if (!e.dead && !e.def.flying && !spBoss(e) && e.tier < 3) e.d = Math.max(Math.min(e.d, SAFE_D), e.d - 110); });
       mons.forEach(function (m) { if (m.prot) m.dirt = 0; else hit(m, 300 * mul, 'netturbino', lv); });
       spRing(t.x, t.y, 15, 170, '#2f9a58', 0.6, 8); spRing(t.x, t.y, 10, 125, '#b6f0c8', 0.45, 4);
       sfx('spugna_pulisce', 0); ok = true;
@@ -2152,9 +2152,15 @@ var SND = (function () {
   function sellValue(t) { return Math.round(t.invested * 0.7); }
   function towerAt(c, r) { for (var i = 0; i < towers.length; i++) if (towers[i].c === c && towers[i].r === r) return towers[i]; return null; }
   var MIND = 30, ROAD = 30, TOWR = 13;
+  function nearSafe(x, y) {
+    var pi, d, q;
+    for (pi = 0; pi < PS.length; pi++) for (d = 0; d <= SAFE_D + 30; d += 12) { q = posAt(d, pi); if (Math.hypot(q.x - x, q.y - y) < ROAD + CELL * 0.75) return true; }
+    return false;
+  }
   function placeCheck(x, y) {
     if (x < TOWR || y < TOWR || x > W - TOWR || y > H - TOWR) return 'Too close to the edge of the map.';
     if (distToPath(x, y) < ROAD) return 'Too close to the road.';
+    if (nearSafe(x, y)) return 'Too close to the entrance: enemies are protected there.';
     var k, rc, bx, by, dx, dy, i, m;
     for (k in blocked) {
       rc = k.split(','); bx = +rc[0] * CELL; by = +rc[1] * CELL;
@@ -2181,13 +2187,13 @@ var SND = (function () {
   function lineHit(x, y, ang, len, wid, dmg, tt, lvl, stun) {
     var ca = Math.cos(ang), sa = Math.sin(ang), j, e, dx, dy, al, pe;
     for (j = 0; j < enemies.length; j++) {
-      e = enemies[j]; if (e.dead || e.friend || e.x < 0) continue;
+      e = enemies[j]; if (e.dead || e.friend || e.x < 0 || e.safe) continue;
       dx = e.x - x; dy = e.y - y; al = dx * ca + dy * sa; pe = Math.abs(-dx * sa + dy * ca);
       if (al >= 0 && al <= len && pe <= wid / 2 + e.r * 0.6) { hit(e, dmg, tt, lvl); if (stun && !e.dead && e.tier < 3) e.stopT = Math.max(e.stopT, 1); }
     }
   }
   function hit(e, dmg, tt, lvl) {
-    if (e.dead) return;
+    if (e.dead || e.safe) return;
     if (e.isMon) {
       if (e.trash && tt !== 'netturbino') return;
       if (e.trash && tt === 'netturbino') dmg *= 2; else if (!e.prot && tt === 'netturbino' && lvl >= 3) dmg *= 2;
@@ -2196,7 +2202,7 @@ var SND = (function () {
       return;
     }
     if (e.friend) return;
-    if (tt === 'netturbino' && !e.def.flying && e.tier < 3) e.d = Math.max(0, e.d - (6 + 4 * lvl));
+    if (tt === 'netturbino' && !e.def.flying && e.tier < 3) e.d = Math.max(Math.min(e.d, SAFE_D), e.d - (6 + 4 * lvl));
     var ar = e.def.armor && tt && e.def.armor[tt];
     if (ar) dmg *= ar;
     if (tt === 'gladiatore' && lvl >= 3 && e.tier < 3 && e.hp - dmg < e.max * 0.2) { dmg = e.hp; fx.push({ k: 'pop', x: e.x, y: e.y, t: 0, life: 0.35, color: '#e8b84a' }); }
@@ -2317,7 +2323,7 @@ var SND = (function () {
           else if (bd < 100 && d0.charge) spd *= d0.charge;
         }
       }
-      e.d += e.speed * spd * dt;
+      e.d += e.speed * spd * dt; e.safe = !e.friend && e.d < SAFE_D;
       if (e.d >= PS[e.pi].total) {
         if (e.friend) {
           e.dead = true; money += e.pay; tourPaid += e.pay; tourSaved++;
@@ -2342,13 +2348,13 @@ var SND = (function () {
         t.alt = (t.alt === undefined ? 3 : t.alt) - dt;
         if (t.alt <= 0) {
           var any = false;
-          for (j = 0; j < enemies.length; j++) { e = enemies[j]; if (!e.dead && !e.friend && e.x >= 0 && Math.hypot(e.x - t.x, e.y - t.y) <= s.range) { e.stopT = Math.max(e.stopT, 1); any = true; } }
+          for (j = 0; j < enemies.length; j++) { e = enemies[j]; if (!e.dead && !e.friend && e.x >= 0 && !e.safe && Math.hypot(e.x - t.x, e.y - t.y) <= s.range) { e.stopT = Math.max(e.stopT, 1); any = true; } }
           if (any) { t.alt = 6; t.fireT = gclock; sfx('vigile_alt', 400); fx.push({ k: 'ring', x: t.x, y: t.y, t: 0, life: 0.5, rad: s.range, color: '#d6403a' }); }
         }
       }
       for (j = 0; j < enemies.length; j++) {
         e = enemies[j];
-        if (e.dead || e.friend || e.x < 0) continue;
+        if (e.dead || e.friend || e.x < 0 || e.safe) continue;
         if (TOWERS[t.type].ground && e.def.flying) continue;
         if (Math.hypot(e.x - t.x, e.y - t.y) <= s.range + e.r * 0.5 && (!best || (e.d - PS[e.pi].total) > (best.d - PS[best.pi].total))) best = e;
       }
@@ -2359,7 +2365,7 @@ var SND = (function () {
           var smv = vigSlow(t.level);
           for (j = 0; j < enemies.length; j++) {
             e = enemies[j];
-            if (e.dead || e.friend || e.x < 0 || e.def.flying || Math.hypot(e.x - t.x, e.y - t.y) > s.range + e.r * 0.5) continue;
+            if (e.dead || e.friend || e.x < 0 || e.safe || e.def.flying || Math.hypot(e.x - t.x, e.y - t.y) > s.range + e.r * 0.5) continue;
             e.slowMul = e.slowT > 0 ? Math.min(e.slowMul || 1, smv) : smv; e.slowT = 1.3; if (e.kind === 'superboss') e.slowMul = Math.max(e.slowMul, 0.85);
            
           }
@@ -2402,7 +2408,7 @@ var SND = (function () {
             sfxFire(t.type, false);
             for (j = 0; j < enemies.length; j++) {
               e = enemies[j];
-              if (e.dead || e.friend || e.x < 0 || e.def.flying) continue;
+              if (e.dead || e.friend || e.x < 0 || e.safe || e.def.flying) continue;
               if (Math.hypot(e.x - t.x, e.y - t.y) <= s.range + e.r * 0.5) hit(e, s.dmg, 'gladiatore', t.level);
             }
             fx.push({ k: 'slash', x: t.x, y: t.y, t: 0, life: 0.28, rad: s.range, ang: t.angle });
@@ -3518,16 +3524,34 @@ var SND = (function () {
     }
     g.restore();
   }
+  /* protected entrance: tinted road segment + striped barrier tape (hordes can't be hit until they cross it) */
+  function drawSafeZone(g) {
+    var pi, k, q, q2, nx, ny, L, col = stage.gate || '#e8b84a', pl = 0.5 + 0.5 * Math.sin(gclock * 3), x1, y1, x2, y2, sg, hw = ROAD * 0.62;
+    g.save(); g.lineCap = 'butt'; g.lineJoin = 'round';
+    for (pi = 0; pi < PS.length; pi++) {
+      g.strokeStyle = col; g.globalAlpha = 0.14 + 0.06 * pl; g.lineWidth = hw * 2; g.beginPath();
+      for (k = 0; k <= SAFE_D; k += 8) { q = posAt(k, pi); if (k === 0) g.moveTo(q.x, q.y); else g.lineTo(q.x, q.y); }
+      g.stroke(); g.globalAlpha = 1;
+      q = posAt(SAFE_D, pi); q2 = posAt(SAFE_D + 6, pi); nx = -(q2.y - q.y); ny = q2.x - q.x; L = Math.hypot(nx, ny) || 1; nx /= L; ny /= L;
+      x1 = q.x - nx * hw; y1 = q.y - ny * hw; x2 = q.x + nx * hw; y2 = q.y + ny * hw;
+      g.strokeStyle = '#3b2c1c'; g.lineWidth = 7.5; g.beginPath(); g.moveTo(x1, y1); g.lineTo(x2, y2); g.stroke();
+      g.strokeStyle = '#ffffff'; g.lineWidth = 5; g.beginPath(); g.moveTo(x1, y1); g.lineTo(x2, y2); g.stroke();
+      g.strokeStyle = col; g.lineWidth = 5; g.setLineDash([5, 5]); g.beginPath(); g.moveTo(x1, y1); g.lineTo(x2, y2); g.stroke(); g.setLineDash([]);
+      g.fillStyle = '#3b2c1c'; g.beginPath(); g.arc(x1, y1, 3.4, 0, TAU); g.fill(); g.beginPath(); g.arc(x2, y2, 3.4, 0, TAU); g.fill();
+      g.fillStyle = col; g.beginPath(); g.arc(x1, y1, 1.9, 0, TAU); g.fill(); g.beginPath(); g.arc(x2, y2, 1.9, 0, TAU); g.fill();
+    }
+    g.restore();
+  }
   function drawEnemy(g, e) {
     var d = e.def, SH = e.demo || !e.big ? 0.78 : 0.88, hh = EH[e.kind][e.tier - 1] * d.gs * SH;
     if (e.friend) {
       g.fillStyle = 'rgba(80,205,120,0.5)'; g.strokeStyle = 'rgba(255,255,255,0.8)'; g.lineWidth = 1.2;
       g.beginPath(); g.ellipse(e.x, e.y + hh * 0.45 + 1, e.r * SH + 3, 4.5, 0, 0, TAU); g.fill(); g.stroke();
     }
-    g.save(); g.translate(e.x, e.y + hh * 0.45); g.scale(d.gs * SH * e.face, d.gs * SH);
+    g.save(); g.translate(e.x, e.y + hh * 0.45); g.scale(d.gs * SH * e.face, d.gs * SH); if (e.safe && !e.demo) g.globalAlpha = 0.5;
     SPR.draw[e.kind][e.tier - 1](g, gclock + e.ph);
     g.restore();
-    if (e.slowT > 0) { g.strokeStyle = '#3b9ad9'; g.lineWidth = 2; g.beginPath(); g.arc(e.x, e.y, e.r + 4, 0, TAU); g.stroke(); }
+    if (e.slowT > 0 && !e.safe) { g.strokeStyle = '#3b9ad9'; g.lineWidth = 2; g.beginPath(); g.arc(e.x, e.y, e.r + 4, 0, TAU); g.stroke(); }
     if (e.stopT > 0.05 && e.tier < 3 && d.selfie) { g.fillStyle = 'rgba(255,255,255,0.9)'; g.font = '400 13px Bangers, Impact, sans-serif'; g.textAlign = 'center'; g.fillText('CLICK!', e.x, e.y - hh * 0.55 - 8); }
     if (e.sprayM && e.stopT > 0.05) { var sp = ['#e83f8f', '#27c4e8', '#f2d21b'][Math.floor(gclock * 8) % 3]; g.fillStyle = sp; g.globalAlpha = 0.65; for (var si = 0; si < 3; si++) { g.beginPath(); g.arc(e.x + e.face * (13 + si * 5), e.y - hh * 0.2 + (si - 1) * 3, 2.6 + si, 0, TAU); g.fill(); } g.globalAlpha = 1; }
     if (e.friend && gclock - (e.attacked || -9) < 0.6) { g.fillStyle = '#e0302f'; g.strokeStyle = '#fff'; g.lineWidth = 2.5; g.font = '700 16px "DM Sans", sans-serif'; g.textAlign = 'center'; g.strokeText('!', e.x + e.r, e.y - hh * 0.55 - 12); g.fillText('!', e.x + e.r, e.y - hh * 0.55 - 12); }
@@ -3584,6 +3608,7 @@ var SND = (function () {
       }
     }
     if (wheelCell) { var pl = 0.6 + 0.4 * Math.sin(gclock * 6); g.strokeStyle = 'rgba(255,255,255,' + pl.toFixed(2) + ')'; g.lineWidth = 3; g.beginPath(); g.arc(wheelCell.x, wheelCell.y, TOWR + 3, 0, TAU); g.stroke(); g.fillStyle = 'rgba(255,255,255,0.35)'; g.beginPath(); g.arc(wheelCell.x, wheelCell.y, 3, 0, TAU); g.fill(); }
+    drawSafeZone(g);
     enemies.slice().sort(function (a, b) { return a.y - b.y; }).forEach(function (en) { if (en.x > -60) drawEnemy(g, en); });
     demoDraw(g);
     drawBadges(g);
