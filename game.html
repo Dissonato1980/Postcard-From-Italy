@@ -1595,6 +1595,36 @@ var SND = (function () {
   function musicStop() { musicOn = false; clearInterval(musicTimer); }
   function musicResume() { if (musicOn) return; var c = ctx(); musicOn = true; musicNext = c.currentTime + 0.05; musicSchedule(); musicTimer = setInterval(musicSchedule, 60); }
   function musicIsOn() { return musicOn; }
+  /* ---------- stadium crowd: murmur, roars, whistles and a clapping chant (only on stages with crowd:true) ---------- */
+  var crowdOn = false, crowdTimer = null, crowdNext = 0, crowdBeat = 0, crowdRoarAt = 0, crowdWhAt = 0, crowdChantAt = 0, crowdChant = -1;
+  var CHANT = ['k', '', 'k', 'c', '', 'k', 'c', '', 'k', '', 'k', 'c', 'k', 'k', 'c', 'c'];
+  function crowdSchedule() {
+    var c = ctx(); if (!c || !crowdOn) return; var now = c.currentTime; if (crowdNext < now) crowdNext = now + 0.05;
+    while (crowdNext < now + 0.4) {
+      var t = crowdNext;
+      if (crowdBeat % 4 === 0) noise(c, master, t, { dur: 1.1, type: 'bandpass', f0: 650 + Math.random() * 350, q: 0.5, gain: 0.05, att: 0.5 });
+      if (t >= crowdRoarAt) { noise(c, master, t, { dur: 2.8, type: 'bandpass', f0: 800, f1: 1400, q: 0.6, gain: 0.11, att: 1.2 }); crowdRoarAt = t + 5 + Math.random() * 8; }
+      if (t >= crowdWhAt) {
+        var f = 2600 + Math.random() * 600; tone(c, master, t, { type: 'sine', f0: f, f1: f * 1.08, dur: 0.5, gain: 0.07, att: 0.03, vib: 70, vibf: 26 });
+        if (Math.random() < 0.4) tone(c, master, t + 0.6, { type: 'sine', f0: f * 0.95, f1: f * 1.05, dur: 0.4, gain: 0.06, att: 0.03, vib: 70, vibf: 26 });
+        crowdWhAt = t + 6 + Math.random() * 9;
+      }
+      if (crowdChant < 0 && t >= crowdChantAt) crowdChant = 0;
+      if (crowdChant >= 0 && crowdBeat % 2 === 0) {
+        var st = CHANT[crowdChant];
+        if (st === 'k') { tone(c, master, t, { type: 'sine', f0: 130, f1: 55, dur: 0.2, gain: 0.2, att: 0.004 }); noise(c, master, t, { dur: 0.14, type: 'bandpass', f0: 760, q: 3, gain: 0.07 }); }
+        else if (st === 'c') { noise(c, master, t, { dur: 0.07, type: 'bandpass', f0: 1900, q: 1.2, gain: 0.16 }); noise(c, master, t, { dur: 0.16, type: 'bandpass', f0: 950, q: 3, gain: 0.07 }); }
+        crowdChant++; if (crowdChant >= CHANT.length) { crowdChant = -1; crowdChantAt = t + 9 + Math.random() * 12; }
+      }
+      crowdNext += 0.15; crowdBeat++;
+    }
+  }
+  function crowd(on) {
+    on = !!on; if (on === crowdOn) return;
+    crowdOn = on;
+    if (on) { ctx(); crowdNext = 0; crowdChant = -1; crowdChantAt = 0; crowdTimer = setInterval(crowdSchedule, 80); crowdSchedule(); }
+    else { clearInterval(crowdTimer); crowdTimer = null; }
+  }
 
   /* ---------- test offline: renderizza un effetto e ne misura il picco ---------- */
   function render(id, cb) {
@@ -1606,7 +1636,7 @@ var SND = (function () {
       cb({ id: id, peak: pk, secs: last / sr, bad: bad });
     });
   }
-  return { defs: DEFS, play: play, setVolume: setVolume, setCustom: setCustom, clearCustom: clearCustom, hasCustom: hasCustom, musicStart: musicStart, musicStop: musicStop, musicResume: musicResume, musicIsOn: musicIsOn, setTrack: setTrack, render: render, unlock: unlock };
+  return { defs: DEFS, play: play, setVolume: setVolume, setCustom: setCustom, clearCustom: clearCustom, hasCustom: hasCustom, musicStart: musicStart, musicStop: musicStop, musicResume: musicResume, musicIsOn: musicIsOn, setTrack: setTrack, crowd: crowd, crowdIsOn: function () { return crowdOn; }, render: render, unlock: unlock };
 })();
 
   var sndOn = true, sndLast = {}, musIdx = 0;
@@ -3645,6 +3675,7 @@ var SND = (function () {
     if (!over && !paused && !mqPortrait.matches) {
       for (var k = 0; k < gameSpeed && !over; k++) update(dt);
     }
+    SND.crowd(sndOn && musGesture && !paused && !over && !!stage.crowd && !mqPortrait.matches);
     draw(); tutDraw(); hud(); tutTick(); edgeArrows();
     requestAnimationFrame(frame);
   }

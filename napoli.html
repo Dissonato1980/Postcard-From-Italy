@@ -476,7 +476,7 @@ header, .stages, .help, .pc-note, .pc-stamps, .pc-title, #fsBtn, .postmark, .sho
   var STAGES = [
     {
       id: 'mare', name: 'Lungomare', diff: 'Easy', cols: 18, rows: 15,
-      rules: { money: 120, lives: 25, waves: 10, hpGrowth: 0.10, hpMul: 1.0, countMul: 0.85, speedMul: 1.1, gapMul: 1.1 },
+      rules: { money: 120, lives: 25, waves: 10, hpGrowth: 0.10, hpMul: 1.0, countMul: 1.0, speedMul: 1.1, gapMul: 1.0 },
       path: marePath, paint: paintMare, deco: [[17, 14]],
       goals: [{ key: 'castelovo', name: "Castel dell'Ovo", c: 13, r: 12, w: 3, h: 3 }],
       hint: "The hordes come down the seafront and head for Castel dell'Ovo. Next stop: Spaccanapoli.",
@@ -493,7 +493,7 @@ header, .stages, .help, .pc-note, .pc-stamps, .pc-title, #fsBtn, .postmark, .sho
     {
       id: 'spacca', name: 'Spaccanapoli', diff: 'Medium', cols: 18, rows: 15,
       hint: "They start from Castel dell'Ovo and come down the narrow alleys to Galleria Umberto I. Two roads cross in the middle and meet before the end.",
-      rules: { money: 150, lives: 25, waves: 12, hpGrowth: 0.13, hpMul: 1.2, countMul: 1.1, speedMul: 1.1, gapMul: 0.95 },
+      rules: { money: 150, lives: 25, waves: 12, hpGrowth: 0.13, hpMul: 1.3, countMul: 1.25, speedMul: 1.1, gapMul: 0.95 },
       paths: spaccaPaths, paint: paintSpacca, deco: [[0, 5]],
       starts: [{ key: 'castelovo', name: "Castel dell'Ovo", c: 7, r: 0, w: 3, h: 2 }],
       goals: [{ key: 'galleria', name: 'Galleria Umberto I', c: 8, r: 13, w: 3, h: 2 }],
@@ -512,7 +512,7 @@ header, .stages, .help, .pc-note, .pc-stamps, .pc-title, #fsBtn, .postmark, .sho
     {
       id: 'plebiscito', name: 'Piazza del Plebiscito', diff: 'Hard', cols: 18, rows: 16,
       hint: 'They start from Galleria Umberto I and cross the great square to the Basilica. Two roads cross in the middle of the piazza.',
-      rules: { money: 180, lives: 25, waves: 13, hpGrowth: 0.15, hpMul: 1.35, countMul: 1.05, speedMul: 1.15, gapMul: 0.95 },
+      rules: { money: 180, lives: 25, waves: 13, hpGrowth: 0.15, hpMul: 1.5, countMul: 1.2, speedMul: 1.15, gapMul: 0.95 },
       paths: plebPaths, paint: paintPleb, deco: [[17, 15]],
       starts: [{ key: 'galleria', name: 'Galleria Umberto I', c: 7, r: 0, w: 3, h: 2 }],
       goals: [{ key: 'basilica', name: 'Basilica S. Francesco', c: 7, r: 13, w: 4, h: 3, lx: 8 }],
@@ -529,7 +529,7 @@ header, .stages, .help, .pc-note, .pc-stamps, .pc-title, #fsBtn, .postmark, .sho
     {
       id: 'vesuvio', name: 'Vesuvio', diff: 'Very hard', cols: 18, rows: 16,
       hint: 'They start from the Basilica and wind down the slopes to the crater. Two separate roads, one on each side of the volcano.',
-      rules: { money: 220, lives: 25, waves: 14, hpGrowth: 0.15, hpMul: 1.45, countMul: 1.0, speedMul: 1.2, gapMul: 0.95 },
+      rules: { money: 220, lives: 25, waves: 14, hpGrowth: 0.15, hpMul: 1.6, countMul: 1.15, speedMul: 1.2, gapMul: 0.95 },
       paths: vesPaths, paint: paintVes, deco: [[17, 15]],
       starts: [{ key: 'basilica', name: 'Basilica', c: 7, r: 0, w: 3, h: 2 }],
       goals: [{ key: 'vesuvio', name: 'Vesuvio', c: 6, r: 12, w: 5, h: 4, lx: -4 }],
@@ -543,9 +543,9 @@ header, .stages, .help, .pc-note, .pc-stamps, .pc-title, #fsBtn, .postmark, .sho
       ]
     },
     {
-      id: 'stadio', name: 'Stadio', sub: 'San Paolo', diff: 'Final', cols: 18, rows: 17,
+      id: 'stadio', name: 'Stadio', sub: 'San Paolo', diff: 'Final', cols: 18, rows: 17, crowd: true,
       hint: "They come down from Vesuvio, go through the gates into the stadium and run along the track to the locker rooms. Two lanes cross on the pitch. Watch out for 'O Munaciello!",
-      rules: { money: 260, lives: 25, waves: 15, hpGrowth: 0.12, hpMul: 1.5, countMul: 1.0, speedMul: 1.15, gapMul: 1.0 },
+      rules: { money: 260, lives: 25, waves: 15, hpGrowth: 0.12, hpMul: 1.65, countMul: 1.15, speedMul: 1.15, gapMul: 1.0 },
       paths: stadPaths, paint: paintStad, deco: [[17, 16]],
       goals: [{ key: 'spogliatoi', name: 'Locker Room', c: 7, r: 14, w: 4, h: 3 }],
       trees: ovTrees(),
@@ -1184,7 +1184,7 @@ var SPR = (function () {
      Stornellatore (sound) ignores bodywork; the Vigile deals no damage. One entry per tier (small, medium, big). */
   var ARM = {
     piccione:   [{ suppli: 1.3 }, { suppli: 1.3 }, { suppli: 1.2 }],
-    auto:       [{}, { suppli: 0.7, netturbino: 0.7 }, { suppli: 0.5, gladiatore: 0.8, netturbino: 0.6 }],
+    auto:       [{ suppli: 0.75 }, { suppli: 0.5, netturbino: 0.7 }, { suppli: 0.35, gladiatore: 0.8, netturbino: 0.6 }],
     cinghiale:  [{ suppli: 0.8, gladiatore: 1.15 }, { suppli: 0.8, gladiatore: 1.15 }, { suppli: 0.7, gladiatore: 1.1, netturbino: 0.9 }],
     writer:     [{ suppli: 1.15 }, { suppli: 1.15 }, { suppli: 1.1 }],
     centurione: [{ suppli: 0.8 }, { suppli: 0.75 }, { suppli: 0.7, stornellatore: 1.1 }],
@@ -1575,13 +1575,14 @@ var SPRT = (function () {
     if (l === 3) { for (var s2 = 0; s2 < 5; s2++) star(g, -16 + s2 * 8, -62 + Math.abs(s2 - 2) * 3, 2.8, '#f2c230'); }
     g.save(); g.translate(0, l === 3 ? -2 : 0);
     /* legs */
-    rr(g, -6, -12, 5.2, 11, 2, '#ffffff', 1.2); ln(g, -3.4, -6, -3.4, -1, 3.8, AZ);
-    g.save(); g.translate(2.4, -10); g.rotate(-kick * 1.1); rr(g, -0.2, -2, 5.2, 12, 2, '#ffffff', 1.2); ln(g, 2.4, 4, 2.4, 9, 3.8, AZ); fe(g, 4, 10, 4.6, 2.4, '#25252f', 1.1); g.restore();
+    rr(g, -6, -12, 5.2, 11, 2, '#ffffff', 1.2); ln(g, -3.4, l >= 2 ? -8 : -6, -3.4, -1, 3.8, AZ); if (l === 2) fr(g, -5.3, -6.4, 3.8, 1.3, '#ffffff', 0);
+    g.save(); g.translate(2.4, -10); g.rotate(-kick * 1.1); rr(g, -0.2, -2, 5.2, 12, 2, '#ffffff', 1.2); ln(g, 2.4, l >= 2 ? 2 : 4, 2.4, 9, 3.8, AZ); if (l === 2) fr(g, 0.5, 4.2, 3.8, 1.3, '#ffffff', 0); fe(g, 4, 10, 4.6, 2.4, '#25252f', 1.1); g.restore();
     fe(g, -3.6, -0.6, 4.6, 2.4, '#25252f', 1.1);
     /* shirt */
-    rr(g, -7.5, -27, 15, 17, 3.5, AZ, 1.6); fr(g, -7.5, -27, 15, 3, '#ffffff', 0.9);
-    g.fillStyle = '#ffffff'; g.font = '700 8px "DM Sans", sans-serif'; g.textAlign = 'center'; g.fillText('10', 0, -14.5);
-    if (l >= 2) fr(g, -7.5, -23, 4, 4.4, '#f2c230', 0.9);
+    rr(g, -7.5, -27, 15, 17, 3.5, AZ, 1.6);
+    if (l === 2) { fr(g, -7.5, -25, 15, 3.2, '#ffffff', 0); rr(g, -7.5, -27, 15, 17, 3.5, 'rgba(0,0,0,0)', 1.6); }
+    if (l === 3) { fr(g, -4.5, -27, 3, 17, '#ffffff', 0); fr(g, 1.5, -27, 3, 17, '#ffffff', 0); rr(g, -7.5, -27, 15, 17, 3.5, 'rgba(0,0,0,0)', 1.6); }
+    g.fillStyle = l === 3 ? '#14305e' : '#ffffff'; g.font = '700 8px "DM Sans", sans-serif'; g.textAlign = 'center'; g.fillText('10', 0, -14.5);
     /* hair + head */
     fc(g, 0, -33, 6.4, SKIN);
     fc(g, 0, -37, 10, HR, 1.4); var CU = []; for (var ci = 0; ci < 11; ci++) { var an = Math.PI * (1.08 + ci * 0.084); CU.push([Math.cos(an) * 10.2, -37 + Math.sin(an) * 10.4]); } CU.concat([[-10.5, -33], [10.5, -33], [-8.6, -30.6], [8.6, -30.6]]).forEach(function (c) { fc(g, c[0], c[1], 3.9, HR, 1); });
@@ -1589,10 +1590,10 @@ var SPRT = (function () {
     fc(g, 0, -33, 6, SKIN, 0); fc(g, -2.4, -33.4, 0.95, OUT, 0); fc(g, 2.4, -33.4, 0.95, OUT, 0); g.beginPath(); g.arc(0, -31.4, 2.6, 0.3, Math.PI - 0.3); O(g, 0.9); g.stroke();
     fp(g, [[-6, -39.5], [6, -39.5], [5, -37], [-5, -37]], HR, 0);
     /* arms */
-    ln(g, -7, -24, -12, -16, 3.2, SKIN); ln(g, 7, -24, 12, -17, 3.2, SKIN); ln(g, -7, -24, -10.6, -18.6, 5.4, AZ, 1.2); ln(g, 7, -24, 10.6, -18.8, 5.4, AZ, 1.2); fr(g, -12.6, -20.6, 4.2, 1.6, '#ffffff', 0); fr(g, 8.4, -20.8, 4.2, 1.6, '#ffffff', 0);
+    ln(g, -7, -24, -12, -16, 3.2, SKIN); ln(g, 7, -24, 12, -17, 3.2, SKIN); ln(g, -7, -24, -10.6, -18.6, 5.4, AZ, 1.2); ln(g, 7, -24, 10.6, -18.8, 5.4, AZ, 1.2); if (l >= 2) { fr(g, -11.6, -22.6, 3.6, 2.6, '#f2c230', 0.9); }
     g.restore();
     /* ball */
-    if (!(p > 0.28 && p < 0.7)) { fc(g, 14, 2, 3.2, '#ffffff', 1.2); fc(g, 14.3, 1.7, 1.2, '#25252f', 0); }
+    if (!(p > 0.28 && p < 0.7)) { if (l === 3) { fc(g, 14, 2, 3.6, '#f2c230', 1.2); fc(g, 14.3, 1.7, 1.3, '#a8761a', 0); } else if (l === 2) { fc(g, 14, 2, 3.4, '#ffffff', 1.2); fc(g, 12.6, 1.2, 0.9, '#25252f', 0); fc(g, 15.4, 1.2, 0.9, '#25252f', 0); fc(g, 14, 3.6, 0.9, '#25252f', 0); fc(g, 14, 0.2, 0.7, '#25252f', 0); } else { fc(g, 14, 2, 3.2, '#ffffff', 1.2); fc(g, 14.3, 1.7, 1.2, '#25252f', 0); } }
     else { var q = (p - 0.28) / 0.42; fc(g, 14 + q * 26, 1 - Math.sin(q * Math.PI) * 7, 3.8 - q, 'rgba(255,255,255,' + (1 - q * 0.6).toFixed(2) + ')', 1.1); }
   }
 
@@ -1845,6 +1846,36 @@ var SND = (function () {
   function musicStop() { musicOn = false; clearInterval(musicTimer); }
   function musicResume() { if (musicOn) return; var c = ctx(); musicOn = true; musicNext = c.currentTime + 0.05; musicSchedule(); musicTimer = setInterval(musicSchedule, 60); }
   function musicIsOn() { return musicOn; }
+  /* ---------- stadium crowd: murmur, roars, whistles and a clapping chant (only on stages with crowd:true) ---------- */
+  var crowdOn = false, crowdTimer = null, crowdNext = 0, crowdBeat = 0, crowdRoarAt = 0, crowdWhAt = 0, crowdChantAt = 0, crowdChant = -1;
+  var CHANT = ['k', '', 'k', 'c', '', 'k', 'c', '', 'k', '', 'k', 'c', 'k', 'k', 'c', 'c'];
+  function crowdSchedule() {
+    var c = ctx(); if (!c || !crowdOn) return; var now = c.currentTime; if (crowdNext < now) crowdNext = now + 0.05;
+    while (crowdNext < now + 0.4) {
+      var t = crowdNext;
+      if (crowdBeat % 4 === 0) noise(c, master, t, { dur: 1.1, type: 'bandpass', f0: 650 + Math.random() * 350, q: 0.5, gain: 0.05, att: 0.5 });
+      if (t >= crowdRoarAt) { noise(c, master, t, { dur: 2.8, type: 'bandpass', f0: 800, f1: 1400, q: 0.6, gain: 0.11, att: 1.2 }); crowdRoarAt = t + 5 + Math.random() * 8; }
+      if (t >= crowdWhAt) {
+        var f = 2600 + Math.random() * 600; tone(c, master, t, { type: 'sine', f0: f, f1: f * 1.08, dur: 0.5, gain: 0.07, att: 0.03, vib: 70, vibf: 26 });
+        if (Math.random() < 0.4) tone(c, master, t + 0.6, { type: 'sine', f0: f * 0.95, f1: f * 1.05, dur: 0.4, gain: 0.06, att: 0.03, vib: 70, vibf: 26 });
+        crowdWhAt = t + 6 + Math.random() * 9;
+      }
+      if (crowdChant < 0 && t >= crowdChantAt) crowdChant = 0;
+      if (crowdChant >= 0 && crowdBeat % 2 === 0) {
+        var st = CHANT[crowdChant];
+        if (st === 'k') { tone(c, master, t, { type: 'sine', f0: 130, f1: 55, dur: 0.2, gain: 0.2, att: 0.004 }); noise(c, master, t, { dur: 0.14, type: 'bandpass', f0: 760, q: 3, gain: 0.07 }); }
+        else if (st === 'c') { noise(c, master, t, { dur: 0.07, type: 'bandpass', f0: 1900, q: 1.2, gain: 0.16 }); noise(c, master, t, { dur: 0.16, type: 'bandpass', f0: 950, q: 3, gain: 0.07 }); }
+        crowdChant++; if (crowdChant >= CHANT.length) { crowdChant = -1; crowdChantAt = t + 9 + Math.random() * 12; }
+      }
+      crowdNext += 0.15; crowdBeat++;
+    }
+  }
+  function crowd(on) {
+    on = !!on; if (on === crowdOn) return;
+    crowdOn = on;
+    if (on) { ctx(); crowdNext = 0; crowdChant = -1; crowdChantAt = 0; crowdTimer = setInterval(crowdSchedule, 80); crowdSchedule(); }
+    else { clearInterval(crowdTimer); crowdTimer = null; }
+  }
 
   /* ---------- test offline: renderizza un effetto e ne misura il picco ---------- */
   function render(id, cb) {
@@ -1856,7 +1887,7 @@ var SND = (function () {
       cb({ id: id, peak: pk, secs: last / sr, bad: bad });
     });
   }
-  return { defs: DEFS, play: play, setVolume: setVolume, setCustom: setCustom, clearCustom: clearCustom, hasCustom: hasCustom, musicStart: musicStart, musicStop: musicStop, musicResume: musicResume, musicIsOn: musicIsOn, setTrack: setTrack, render: render, unlock: unlock };
+  return { defs: DEFS, play: play, setVolume: setVolume, setCustom: setCustom, clearCustom: clearCustom, hasCustom: hasCustom, musicStart: musicStart, musicStop: musicStop, musicResume: musicResume, musicIsOn: musicIsOn, setTrack: setTrack, crowd: crowd, crowdIsOn: function () { return crowdOn; }, render: render, unlock: unlock };
 })();
 
   var sndOn = true, sndLast = {}, musIdx = 0;
@@ -4406,6 +4437,7 @@ var SND = (function () {
     if (!over && !paused && !mqPortrait.matches) {
       for (var k = 0; k < gameSpeed && !over; k++) update(dt);
     }
+    SND.crowd(sndOn && musGesture && !paused && !over && !!stage.crowd && !mqPortrait.matches);
     draw(); tutDraw(); hud(); tutTick(); edgeArrows();
     requestAnimationFrame(frame);
   }
