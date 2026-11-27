@@ -1,6 +1,6 @@
 /* Postcard from Italy: offline cache.
    Bump VERSION whenever you upload a new build so phones drop the old copy. */
-var VERSION = 'postcard-v75';
+var VERSION = 'postcard-v76';
 var SHELL = ['./', './index.html', './game.html', './napoli.html', './milano.html', './i18n.js', './manifest.webmanifest', './icon-192.png', './icon-512.png', './apple-touch-icon.png'];
 self.addEventListener('install', function (e) {
   e.waitUntil(caches.open(VERSION).then(function (c) { return c.addAll(SHELL); }).then(function () { return self.skipWaiting(); }));

@@ -165,6 +165,12 @@ button:focus-visible { outline: 3px solid #fff; outline-offset: 2px; }
 /* Towers */
 .tw { flex: 1; min-height: 0; display: grid; grid-template-columns: repeat(3, 1fr); gap: 2cqw; }
 .tw.one { grid-template-columns: minmax(0, 30cqw); justify-content: center; }
+.tw.five { grid-template-columns: repeat(5, 1fr); gap: 1.1cqw; }
+.tw.five .tcard { padding: 1cqw .7cqw; }
+.tw.five .tcard .ic { width: 6cqw; height: 6cqw; }
+.tw.five .tcard .ic svg { width: 4.6cqw; height: 4.6cqw; }
+.tw.five .tcard h3 { font-size: 1.6cqw; }
+.tw.five .tcard p { font-size: 1.1cqw; }
 .tcard { display: flex; flex-direction: column; align-items: center; gap: .6cqw; padding: 1.4cqw 1.2cqw; text-align: center; background: linear-gradient(#fffaf0, #f3e9cd); border: .3cqw solid var(--line); border-radius: 1cqw; box-shadow: 0 .5cqw 0 rgba(60,40,10,.25); min-height: 0; }
 .tabs { display: flex; gap: 1cqw; overflow-x: auto; padding: .4cqw .3cqw 1.2cqw; scrollbar-width: none; }
 .tab { flex: none; display: flex; align-items: center; gap: .7cqw; padding: .6cqw 1.6cqw; font: 800 1.5cqw var(--font-display); background: linear-gradient(#f8f1de, #e6d9b8); border: .3cqw solid var(--line); border-radius: 5cqw; box-shadow: 0 .3cqw 0 rgba(0,0,0,.25); }
@@ -342,7 +348,7 @@ select { font: 700 1.7cqw var(--font-display); color: var(--ink); background: #f
       <button class="tile" data-go="cards"><svg viewBox="0 0 24 24" fill="none" stroke="#3b2d1d" stroke-width="1.7" stroke-linejoin="round" stroke-linecap="round"><rect x="3.5" y="5" width="17" height="14" rx="1.5" fill="#fff"/><rect x="5.5" y="7" width="7" height="10" fill="#f2c14e"/><path d="M14.5 8h4M14.5 11h4M14.5 14h2.5"/></svg>Collection</button>
     </div>
   </div>
-  <div class="ver">v75 · test build</div>
+  <div class="ver">v76 · test build</div>
 
   <!-- ALBUM -->
   <section class="panel" id="p-album">
@@ -419,7 +425,7 @@ select { font: 700 1.7cqw var(--font-display); color: var(--ink); background: #f
 
   <div class="modal" id="m-card"><div class="cbox"><img id="mcImg" alt=""><div class="cbt"><button class="pr" id="mcSave">Save postcard</button><button id="mcFmt">Horizontal version</button><button data-close>Close</button></div></div></div>
   <div class="modal" id="m-lock"><div class="note"><h3>Premium postcard</h3><p id="lockTxt"></p><div class="bt"><button data-close>Not now</button><button class="pr" id="lockGo">See Premium</button></div></div></div>
-  <div class="modal" id="m-info"><div class="note"><h3>Postcard from Italy</h3><p>City Defense · test build v75<br>Made with love for Italian cities.<br><br><u>Privacy policy</u> · <u>Terms of use</u></p><div class="bt"><button class="pr" data-close>Close</button></div></div></div>
+  <div class="modal" id="m-info"><div class="note"><h3>Postcard from Italy</h3><p>City Defense · test build v76<br>Made with love for Italian cities.<br><br><u>Privacy policy</u> · <u>Terms of use</u></p><div class="bt"><button class="pr" data-close>Close</button></div></div></div>
   <div class="modal" id="m-ad"><div class="adbox"><span class="lb">Sponsored · demo video</span><div class="bigp">Your ad plays here</div><div class="bar"><i id="adBar"></i></div><button id="adCollect" disabled>Watching… 3</button></div></div>
   <div class="toast" id="toast"></div>
 </div>
@@ -436,6 +442,11 @@ select { font: 700 1.7cqw var(--font-display); color: var(--ink); background: #f
   <g id="t-pz" stroke="#6b5a45" stroke-width="1.3" stroke-linejoin="round"><path d="M9 34q0-12 11-12t11 12z" fill="#fbf8ee"/><circle cx="20" cy="15" r="7" fill="#f1c9a5"/><path d="M13 11h14v-5q-7-5-14 0z" fill="#fff"/><path d="M15 17q5 3 10 0" fill="none"/><ellipse cx="31" cy="20" rx="6" ry="3" fill="#d6403a" transform="rotate(-20 31 20)"/></g>
   <g id="t-pu" stroke="#6b5a45" stroke-width="1.3" stroke-linejoin="round"><path d="M8 35l4-14h16l4 14z" fill="#faf8f1"/><circle cx="20" cy="15" r="7" fill="#faf8f1"/><path d="M13 14h14v-3H13z" fill="#25252f"/><path d="M24 14l5 2-5 1z" fill="#25252f"/><path d="M13 11l3-9 8 2 3 7z" fill="#faf8f1"/><path d="M31 6l4 24" stroke="#8a5a36" stroke-width="2.600"/></g>
   <g id="t-dz" stroke="#6b5a45" stroke-width="1.3" stroke-linejoin="round"><path d="M10 35q0-11 10-11t10 11z" fill="#6fc3ec"/><circle cx="20" cy="15" r="6" fill="#f1c9a5"/><path d="M12 15q-1-10 8-10t8 10q-3-5-8-5t-8 5z" fill="#4a2f1e"/><circle cx="11" cy="19" r="3" fill="#4a2f1e"/><circle cx="29" cy="19" r="3" fill="#4a2f1e"/><text x="20" y="32" text-anchor="middle" font-size="8" font-weight="700" fill="#fff" stroke="none">10</text></g>
+  <g id="t-ba" stroke="#6b5a45" stroke-width="1.3" stroke-linejoin="round"><path d="M9 34q0-12 11-12t11 12z" fill="#fbf8ee"/><path d="M9 34q0-9 6-11l5 8 5-8q6 2 6 11z" fill="#25252f"/><circle cx="20" cy="15" r="7" fill="#f1c9a5"/><path d="M13 12q7-7 14 0v-1q-7-6-14 0z" fill="#25252f"/><path d="M16 19q4 2 8 0" fill="none"/><path d="M26 22h10" stroke="#9aa4b0" stroke-width="2"/><path d="M29 22l-1-9h6l-1 9z" fill="#f08a24"/><circle cx="35" cy="12" r="2" fill="#f4b63a"/></g>
+  <g id="t-sc" stroke="#6b5a45" stroke-width="1.3" stroke-linejoin="round"><path d="M8 35l4-14h16l4 14z" fill="#8a5a36"/><circle cx="20" cy="16" r="6.500" fill="#f1c9a5"/><ellipse cx="20" cy="9" rx="8" ry="5" fill="#e6dcf0"/><path d="M14 22q6 4 12 0" fill="none" stroke="#fbf8ee" stroke-width="1.6"/><path d="M30 8l5 24" stroke="#6b4a2a" stroke-width="2.600"/><circle cx="30" cy="7" r="2.500" fill="#8a5a36"/></g>
+  <g id="t-nn" stroke="#6b5a45" stroke-width="1.3" stroke-linejoin="round"><path d="M9 34q0-12 11-12t11 12z" fill="#8a6aa8"/><path d="M12 34q0-8 8-8t8 8z" fill="#fbf8ee"/><circle cx="20" cy="15" r="6.500" fill="#f1c9a5"/><path d="M12.500 14q0-9 7.500-9t7.500 9q-3-5-7.500-5t-7.500 5z" fill="#c9a8d8"/><path d="M26 28q-1-9 5-9t5 9z" fill="#e0a550"/><rect x="25" y="26" width="12" height="3" fill="#d6403a"/></g>
+  <g id="t-tm" stroke="#6b5a45" stroke-width="1.3" stroke-linejoin="round"><path d="M9 34q0-12 11-12t11 12z" fill="#d6203a"/><path d="M15 23v11M20 22v12M25 23v11" stroke="#15151c" stroke-width="2.800"/><circle cx="20" cy="15" r="7" fill="#f1c9a5"/><path d="M13 14q0-8 7-8t7 8z" fill="#15151c"/><path d="M29 18l2-14" stroke="#6b5a45" stroke-width="1.800"/><path d="M31 4l8 2-1 6-7-1z" fill="#d6203a"/></g>
+  <g id="t-ti" stroke="#6b5a45" stroke-width="1.3" stroke-linejoin="round"><path d="M9 34q0-12 11-12t11 12z" fill="#2a5fc0"/><path d="M15 23v11M20 22v12M25 23v11" stroke="#15151c" stroke-width="2.800"/><circle cx="20" cy="15" r="7" fill="#f1c9a5"/><path d="M13 14q0-8 7-8t7 8z" fill="#15151c"/><path d="M29 18l2-14" stroke="#6b5a45" stroke-width="1.800"/><path d="M31 4l8 2-1 6-7-1z" fill="#2a5fc0"/></g>
 </defs></svg>
 
 <script>
@@ -552,7 +563,13 @@ select { font: 700 1.7cqw var(--font-display); color: var(--ink); background: #f
     napoli: [
     ['napoli_pizzaiolo', 'Pizza Maker', 't-pz', 'Tosses pizzas fast from afar. +8% damage per level.'],
     ['napoli_pulcinella', 'Pulcinella', 't-pu', 'Whirls his stick at everyone around him. +6% damage per level.'],
-    ['napoli_dieci', "'O Dieci", 't-dz', 'A kick that pierces a whole line of enemies. The strongest tower. +8% damage per level.']] };
+    ['napoli_dieci', "'O Dieci", 't-dz', 'A kick that pierces a whole line of enemies. The strongest tower. +8% damage per level.']],
+    milano: [
+    ['milano_barista', 'Barista', 't-ba', 'Serves spritz with a splash that hits nearby enemies. +8% damage per level.'],
+    ['milano_sciura', 'Sciura Brambilla', 't-sc', 'Hits every ground enemy around her with her cane. +6% damage per level.'],
+    ['milano_nonna', 'Nonna', 't-nn', 'Heals the towers around her with panettone. +6% damage per level.'],
+    ['milano_tifoso_milan', 'Milan Fan', 't-tm', 'Bouncing ball and stadium chorus. Hates the Inter fan. +8% damage per level.'],
+    ['milano_tifoso_inter', 'Inter Fan', 't-ti', 'Bouncing ball and stadium chorus. Hates the Milan fan. +8% damage per level.']] };
   var ROLES = ['Long-range thrower', 'Melee finisher', 'Crowd slower'];
   var twTab = 'classic';
   function cost(l) { return 40 * (l + 1); }
@@ -565,7 +582,7 @@ select { font: 700 1.7cqw var(--font-display); color: var(--ink); background: #f
       cards = LOCAL[twTab] || ROLES.map(function (r) { return [twTab + '_' + r, '?', null, r + ' — typical character of ' + city[1] + ', still to be designed.']; });
       $('#twSub').textContent = lk ? city[1] + ' is part of the Premium Pass. Its towers are upgraded separately from other cities.' : 'Towers of ' + city[1] + ' — upgraded separately from other cities.';
     }
-    var tw = $('#tw'); tw.className = 'tw' + (cards.length === 1 ? ' one' : '');
+    var tw = $('#tw'); tw.className = 'tw' + (cards.length === 1 ? ' one' : cards.length >= 5 ? ' five' : '');
     tw.innerHTML = cards.map(function (t) {
       var soon = !t[2], l = S.up[t[0]] || 0, max = l >= 5, c = cost(l), ok = !soon && !lk && !max && S.credits >= c;
       var pips = ''; for (var k = 0; k < 5; k++) pips += '<i class="' + (k < l ? 'on' : '') + '"></i>';
