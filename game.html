@@ -1992,7 +1992,7 @@ var SND = (function () {
       var nW = Math.min(4, 1 + Math.floor((n - 3) / 2));
       for (k = 0; k < nW; k++) H.push({ k: 'writer', t: L > 9 && Math.random() < 0.5 ? 2 : 1 });
     }
-    var nT = Math.max(2, Math.round((1.6 + n * 0.5) * R.countMul));
+    var nT = Math.max(2, Math.round((1.6 + n * 0.5) * R.countMul * (R.tourMul || 1)));
     for (k = 0; k < nT; k++) T.push({ k: 'turista', t: Math.random() < p2 * 0.7 ? 2 : 1 });
     if (n === ms + 1 || n === ms + 5 || n === ms + 9) for (k = 0; k < (stageIdx >= 2 ? 2 : 1); k++) T.push({ k: 'turista', t: 3 });
     return mergeWave(H, T);
@@ -2060,8 +2060,8 @@ var SND = (function () {
 
   /* ---------- Special move: every tower charges a bar; when full a star appears above it and a tap fires the special ---------- */
   var SP_BURST = true;
-  var SP_BASE = 40, SP_STEP = 3, later = [], spfx = [], spHinted = false;
-  function spCd(t) { return SP_BASE - SP_STEP * upLv(t.type); }
+  var SP_BASE = 60, SP_STEP = 3, later = [], spfx = [], spHinted = false;
+  function spCd(t) { return Math.max(38, SP_BASE - SP_STEP * upLv(t.type)); }
   function spReady(t) { return t.type !== 'netturbino' && (t.sp || 0) >= spCd(t); }
   function spStarPos(t) { return t.y - 38 < 56 ? { x: t.x + 26, y: t.y + 30 } : { x: t.x, y: t.y - 38 }; }
   function spBoss(e) { return e.kind === 'superboss'; }
@@ -2145,6 +2145,12 @@ var SND = (function () {
     var i, t, f, p, j;
     for (i = 0; i < towers.length; i++) {
       t = towers[i]; var cd = spCd(t), q = Math.max(0, Math.min(1, (t.sp || 0) / cd)), rd = q >= 1, bx = t.x - 12, by = t.y + 22;
+      if (!rd && t.type !== 'netturbino') {
+        var pp = spStarPos(t), px = pp.x, py = pp.y, pr = 9.5;
+        g.fillStyle = 'rgba(20,24,36,0.55)'; g.beginPath(); g.arc(px, py, pr + 2, 0, TAU); g.fill();
+        if (q > 0.005) { g.fillStyle = '#ffd23a'; g.beginPath(); g.moveTo(px, py); g.arc(px, py, pr, -Math.PI / 2, -Math.PI / 2 + TAU * q); g.closePath(); g.fill(); }
+        g.lineWidth = 1.6; g.strokeStyle = 'rgba(255,255,255,0.85)'; g.beginPath(); g.arc(px, py, pr + 2, 0, TAU); g.stroke();
+      }
       if (rd) {
         var sp1 = spStarPos(t), sx = sp1.x, sy = sp1.y + Math.sin(gclock * 4) * 1.5, gl = 15 + 2.5 * Math.sin(gclock * 6);
         g.fillStyle = 'rgba(255,210,60,0.28)'; g.beginPath(); g.arc(sx, sy, gl, 0, TAU); g.fill();
