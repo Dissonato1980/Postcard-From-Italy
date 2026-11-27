@@ -482,88 +482,126 @@ header, .stages, .help, .pc-note, .pc-stamps, .pc-title, #fsBtn, .postmark, .sho
     return out;
   }
 
+  /* ---------- Milan: 5 vertical stages (18 columns). Hordes enter from the TOP; San Siro also from the sides. ---------- */
+  function polyC(list) { return function () { return list.map(function (c) { return { x: c[0] * CELL, y: c[1] * CELL }; }); }; }
+  /* San Siro geometry (continuous cell units): stadium oval and the four spiral towers */
+  var SS = { cx: 9, cy: 11.2, rxo: 8.4, ryo: 9.0, rxi: 5.4, ryi: 6.2, tr: 1.25, sr: 1.55, T: [[2.1, 3.9], [15.9, 3.9], [2.1, 18.5], [15.9, 18.5]] };
+  function ssLoop(t, a0, a1, n) { var out = [], i; for (i = 0; i <= n; i++) { var a = (a0 + (a1 - a0) * i / n) * Math.PI / 180; out.push([t[0] + Math.cos(a) * SS.sr, t[1] + Math.sin(a) * SS.sr]); } return out; }
+  function ssIn(c, r, rx, ry) { return Math.pow((c + 0.5 - SS.cx) / rx, 2) + Math.pow((r + 0.5 - SS.cy) / ry, 2) <= 1; }
+  var SS_SPOTS = [[5, 10], [12, 10]];
+  function ssAvoid() { var out = [], c, r; for (r = 0; r < 24; r++) for (c = 0; c < 18; c++) if (ssIn(c, r, SS.rxo + 0.4, SS.ryo + 0.4) || SS.T.some(function (t) { return Math.hypot(c + 0.5 - t[0], r + 0.5 - t[1]) < SS.sr + 1.2; }) || (r >= 19 && c >= 5 && c <= 12)) out.push({ c: c, r: r, w: 1, h: 1 }); return out; }
+  function ssBlocks() {
+    var out = [], c, r, sp = {}; SS_SPOTS.forEach(function (q) { sp[q[0] + ',' + q[1]] = 1; });
+    for (r = 0; r < 24; r++) for (c = 0; c < 18; c++) if (ssIn(c, r, SS.rxi - 0.2, SS.ryi - 0.2) && !sp[c + ',' + r]) out.push({ c: c, r: r, w: 1, h: 1, pitch: 1 });
+    return out;
+  }
+  function sansiroPaths() {
+    var T = SS.T, nw = [[2.1, -0.6]].concat(ssLoop(T[0], -90, -313.4, 18)).concat([[12.0, 15.2], [10.4, 17.4], [10.4, 21.4]]);
+    var ne = [[15.9, -0.6]].concat(ssLoop(T[1], -90, 133.4, 18)).concat([[6.0, 15.2], [7.6, 17.4], [7.6, 21.4]]);
+    var sw = [[-0.6, 18.5]].concat(ssLoop(T[2], 180, -46.6, 18)).concat([[12.6, 7.6], [9.4, 6.0], [9.4, 21.4]]);
+    var se = [[18.6, 18.5]].concat(ssLoop(T[3], 0, 226.6, 18)).concat([[5.4, 7.6], [8.6, 6.0], [8.6, 21.4]]);
+    return [polyC(nw)(), polyC(ne)(), polyC(sw)(), polyC(se)()];
+  }
+  /* tram tracks (drawn now; the tram itself comes with the Milan characters) */
+  var TRAM = { corso: [[16.5, -0.6], [16.5, 14.5], [11, 14.5]], sansiro: [[-0.6, 23.4], [7, 23.4]] };
+  function tramCells(id) {
+    var l = TRAM[id], out = [], i, k; if (!l) return out;
+    for (i = 0; i < l.length - 1; i++) { var a = l[i], b = l[i + 1], n = Math.ceil(Math.hypot(b[0] - a[0], b[1] - a[1]) * 3); for (k = 0; k <= n; k++) { var x = a[0] + (b[0] - a[0]) * k / n, y = a[1] + (b[1] - a[1]) * k / n, c = Math.floor(x), r = Math.floor(y); if (c >= 0 && r >= 0 && c < 18) out.push({ c: c, r: r, w: 1, h: 1, tram: 1 }); } }
+    return out;
+  }
+  /* Galleria Vittorio Emanuele II: covered cross over the two roads of the Corso stage */
+  var GAL = { c: 9, r: 7, h0: 5, h1: 13, v0: 4, v1: 9 };
+  function galBlocks() {
+    var out = [], c, r;
+    for (c = GAL.h0; c <= GAL.h1; c++) if (c !== GAL.c) { out.push({ c: c, r: GAL.r - 1, w: 1, h: 1, gal: 1 }); out.push({ c: c, r: GAL.r + 1, w: 1, h: 1, gal: 1 }); }
+    for (r = GAL.v0; r <= GAL.v1; r++) if (Math.abs(r - GAL.r) > 1) { out.push({ c: GAL.c - 1, r: r, w: 1, h: 1, gal: 1 }); out.push({ c: GAL.c + 1, r: r, w: 1, h: 1, gal: 1 }); }
+    return out;
+  }
+  /* Duomo roadworks: closed branches (they will open and close during the game) */
+  var CANT = [{ pts: [[9.5, 2.5], [9.5, 6.5]] }, { pts: [[6.5, 9.5], [6.5, 14.5], [5.5, 14.5]] }];
+  var PIGEON = [[17.6, -0.4], [15.5, 3.5], [11.5, 6.5], [13.5, 11], [10.5, 15], [8.5, 19.5], [9, 21.6]];
+
   var STAGES = [
     {
-      id: 'mare', name: 'Lungomare', diff: 'Easy', cols: 18, rows: 15,
+      id: 'castello', name: 'Castello Sforzesco', diff: 'Easy', cols: 18, rows: 15,
       rules: { money: 120, lives: 25, waves: 15, hpGrowth: 0.10, hpMul: 1.0, countMul: 1.15, tourMul: 0.6, speedMul: 1.1, gapMul: 1.0 },
-      path: marePath, paint: paintMare, deco: [[17, 14]],
-      goals: [{ key: 'castelovo', name: "Castel dell'Ovo", c: 13, r: 12, w: 3, h: 3 }],
-      hint: "The hordes come down the seafront and head for Castel dell'Ovo. Next stop: Spaccanapoli.",
-      trees: [[17,0],[16,0],[10,0],[3,14],[10,14],[15,11],[7,5],[16,3]],
-      blocks: [{ c: 0, r: 0, w: 2, h: 15, sea: 1 }],
+      paths: function () { return [polyPath([[4, -1], [4, 3], [13, 3], [13, 7], [5, 7], [5, 11], [8.5, 11], [8.5, 12.4]])()]; }, paint: paintCastello, deco: [[17, 14]],
+      starts: [], goals: [{ key: 'castello', name: 'Castello Sforzesco', c: 7, r: 12, w: 4, h: 3, lx: -130 }],
+      hint: 'The hordes come through Parco Sempione and head for the Castello. Next stop: the Navigli.',
+      trees: [[0, 0], [1, 0], [7, 0], [10, 0], [0, 2], [16, 3], [17, 5], [8, 5], [10, 5], [0, 8], [2, 12], [3, 14], [14, 12], [16, 13], [12, 9], [7, 9], [17, 11]],
+      blocks: [{ c: 0, r: 4, w: 3, h: 3, lake: 1 }],
       monuments: [
-        { key: 'fontana', name: "Fontana dell'Immacolatella", c: 10, r: 3,  w: 2, h: 2, hp: 300, reward: 80, penalty: 2 },
-        { key: 'faro',    name: 'Faro del Molo',               c: 2,  r: 8,  w: 1, h: 1, hp: 120, reward: 35, penalty: 1 },
-        { key: 'faro',    name: 'Faro di Mergellina',          c: 2,  r: 13, w: 1, h: 1, hp: 120, reward: 35, penalty: 1 },
-        { key: 'lido',    name: 'Lido Mappatella',             c: 8,  r: 11, w: 2, h: 1, hp: 200, reward: 50, penalty: 2 },
-        { key: 'lido',    name: 'Bagni Elena',                 c: 15, r: 8,  w: 2, h: 1, hp: 200, reward: 50, penalty: 2 }
+        { key: 'arcopace',    name: 'Arco della Pace',  c: 14, r: 0,  w: 2, h: 2, hp: 400, reward: 100, penalty: 3 },
+        { key: 'torrebranca', name: 'Torre Branca',     c: 16, r: 8,  w: 1, h: 2, hp: 200, reward: 55,  penalty: 2 },
+        { key: 'arena',       name: 'Arena Civica',     c: 0,  r: 9,  w: 2, h: 1, hp: 220, reward: 55,  penalty: 2 },
+        { key: 'sposi',       name: 'Fontana del Castello', c: 9, r: 9, w: 2, h: 1, hp: 260, reward: 70, penalty: 2 }
       ]
     },
     {
-      id: 'spacca', name: 'Spaccanapoli', diff: 'Medium', cols: 18, rows: 15,
-      hint: "They start from Castel dell'Ovo and come down the narrow alleys to Galleria Umberto I. Two roads cross in the middle and meet before the end.",
+      id: 'navigli', name: 'Navigli', diff: 'Medium', cols: 18, rows: 16,
+      hint: 'They leave the Castello and walk down both banks of the Naviglio, crossing it on the little bridges, to the Darsena.',
       rules: { money: 150, lives: 25, waves: 17, hpGrowth: 0.13, hpMul: 1.3, countMul: 1.45, tourMul: 0.6, speedMul: 1.1, gapMul: 0.95 },
-      paths: spaccaPaths, paint: paintSpacca, deco: [[0, 5]],
-      starts: [{ key: 'castelovo', name: "Castel dell'Ovo", c: 7, r: 0, w: 3, h: 2 }],
-      goals: [{ key: 'galleria', name: 'Galleria Umberto I', c: 8, r: 13, w: 3, h: 2 }],
-      trees: [[6,2],[11,3],[1,10],[16,9],[6,14],[17,11],[12,3],[5,8]],
-      blocks: [
-        { c: 0, r: 0, w: 5, h: 2, i: 1 }, { c: 11, r: 0, w: 3, h: 2, i: 2 }, { c: 15, r: 0, w: 3, h: 3, i: 3 },
-        { c: 0, r: 13, w: 4, h: 2, i: 4 }, { c: 12, r: 13, w: 3, h: 2, i: 5 }, { c: 15, r: 12, w: 3, h: 3, i: 2 }
-      ],
+      paths: function () { return [polyPath([[7, 1], [7, 2], [3, 2], [3, 6], [14, 6], [14, 11], [10, 11], [10, 13.3]])(), polyPath([[10, 1], [10, 3], [16, 3], [16, 9], [3, 9], [3, 12], [7, 12], [7, 13.3]])()]; },
+      paint: paintNavigli, deco: [[17, 0]],
+      starts: [{ key: 'castello', name: 'Castello Sforzesco', c: 7, r: 0, w: 4, h: 2 }],
+      goals: [{ key: 'darsena', name: 'Darsena', c: 6, r: 13, w: 6, h: 3 }],
+      trees: [[5, 4], [12, 4], [6, 10], [12, 10], [1, 7], [17, 6], [13, 13], [4, 15], [0, 10]],
+      blocks: [{ c: 8, r: 3, w: 2, h: 10, canal: 1 }, { c: 0, r: 0, w: 3, h: 1, i: 0 }, { c: 0, r: 12, w: 2, h: 4, i: 1 }, { c: 12, r: 14, w: 6, h: 2, i: 2 }],
       monuments: [
-        { key: 'presepe',  name: 'San Gregorio Armeno',      c: 5,  r: 4,  w: 2, h: 2, hp: 350, reward: 90,  penalty: 3 },
-        { key: 'chiesa',   name: 'Chiesa del Gesù Nuovo',    c: 11, r: 7,  w: 3, h: 2, hp: 600, reward: 150, penalty: 5 },
-        { key: 'murales',  name: 'Murale dei Quartieri',     c: 0,  r: 8,  w: 2, h: 1, hp: 200, reward: 50,  penalty: 2 },
-        { key: 'fontana',  name: 'Fontana di Monteoliveto',  c: 11, r: 11, w: 2, h: 2, hp: 300, reward: 80,  penalty: 2 }
+        { key: 'lavandai',      name: 'Vicolo dei Lavandai', c: 0,  r: 4,  w: 2, h: 1, hp: 220, reward: 55,  penalty: 2 },
+        { key: 'sancristoforo', name: 'San Cristoforo',      c: 15, r: 11, w: 2, h: 2, hp: 400, reward: 100, penalty: 3 },
+        { key: 'chiatta',       name: 'Barge on the Naviglio', c: 8, r: 11, w: 2, h: 1, hp: 200, reward: 50, penalty: 2 }
       ]
     },
     {
-      id: 'plebiscito', name: 'Piazza del Plebiscito', diff: 'Hard', cols: 18, rows: 16,
-      hint: 'They start from Galleria Umberto I and cross the great square to the Basilica. Two roads cross in the middle of the piazza.',
+      id: 'corso', name: 'Galleria and Corso', diff: 'Hard', cols: 18, rows: 16, farAs: 'roof',
+      hint: 'They leave the Darsena and cross under the Galleria: under the glass roof your towers cannot see them. The tram runs on its own tracks to San Babila.',
       rules: { money: 180, lives: 25, waves: 18, hpGrowth: 0.15, hpMul: 1.5, countMul: 1.4, tourMul: 0.6, speedMul: 1.15, gapMul: 0.95 },
-      paths: plebPaths, paint: paintPleb, deco: [[17, 15]],
-      starts: [{ key: 'galleria', name: 'Galleria Umberto I', c: 7, r: 0, w: 3, h: 2 }],
-      goals: [{ key: 'basilica', name: 'Basilica S. Francesco', c: 7, r: 13, w: 4, h: 3, lx: 8 }],
-      trees: [[17,0],[16,0],[0,15],[1,15],[3,15],[13,15],[16,15],[5,12],[17,3]],
-      blocks: [],
+      paths: function () { return [polyPath([[7, 1], [7, 3], [2, 3], [2, 7], [15, 7], [15, 11], [10, 11], [10, 13.3]])(), polyPath([[9, 1], [9, 10], [4, 10], [4, 12], [7, 12], [7, 13.3]])()]; },
+      paint: paintCorso, deco: [[0, 15]],
+      starts: [{ key: 'darsena', name: 'Darsena', c: 7, r: 0, w: 4, h: 2 }],
+      goals: [{ key: 'sanbabila', name: 'San Babila', c: 7, r: 13, w: 4, h: 3 }],
+      trees: [[1, 1], [5, 1], [13, 4], [1, 12], [12, 13]],
+      blocks: galBlocks().concat(tramCells('corso')).concat([{ c: 0, r: 13, w: 3, h: 3, i: 3 }, { c: 12, r: 15, w: 4, h: 1, i: 4 }]),
       monuments: [
-        { key: 'palazzoreale', name: 'Palazzo Reale',            c: 0,  r: 0,  w: 3, h: 2, hp: 650, reward: 160, penalty: 5 },
-        { key: 'gambrinus',    name: 'Caffè Gambrinus',          c: 0,  r: 6,  w: 2, h: 1, hp: 220, reward: 55,  penalty: 2 },
-        { key: 'cavallo',      name: 'Statua di Carlo III',      c: 12, r: 2,  w: 1, h: 1, hp: 140, reward: 40,  penalty: 1 },
-        { key: 'cavallo',      name: 'Statua di Ferdinando I',   c: 5,  r: 5,  w: 1, h: 1, hp: 140, reward: 40,  penalty: 1 },
-        { key: 'fontana',      name: 'Fontana della Piazza',     c: 9,  r: 11, w: 2, h: 2, hp: 320, reward: 85,  penalty: 3 }
+        { key: 'scala',    name: 'Teatro alla Scala',  c: 12, r: 1, w: 3, h: 2, hp: 600, reward: 150, penalty: 5 },
+        { key: 'leonardo', name: 'Monumento a Leonardo', c: 15, r: 3, w: 1, h: 1, hp: 140, reward: 40, penalty: 1 },
+        { key: 'boutique', name: 'Fashion Boutique',   c: 4, r: 9, w: 2, h: 1, hp: 220, reward: 55, penalty: 2 },
+        { key: 'boutique', name: 'Atelier',            c: 11, r: 9, w: 2, h: 1, hp: 220, reward: 55, penalty: 2 }
       ]
     },
     {
-      id: 'vesuvio', name: 'Vesuvio', diff: 'Very hard', cols: 18, rows: 16,
-      hint: 'They start from the Basilica and wind down the slopes to the crater. Two separate roads, one on each side of the volcano.',
-      rules: { money: 220, lives: 25, waves: 19, hpGrowth: 0.15, hpMul: 1.6, countMul: 1.35, tourMul: 0.6, speedMul: 1.2, gapMul: 0.95 },
-      paths: vesPaths, paint: paintVes, deco: [[17, 15]],
-      starts: [{ key: 'basilica', name: 'Basilica', c: 7, r: 0, w: 3, h: 2 }],
-      goals: [{ key: 'vesuvio', name: 'Vesuvio', c: 6, r: 12, w: 5, h: 4, lx: -4 }],
-      trees: [[0,0],[1,0],[17,0],[16,0],[0,15],[17,15],[16,15],[13,15],[13,2]],
-      blocks: [],
+      id: 'sansiro', name: 'San Siro', diff: 'Very hard', cols: 18, rows: 24, noFar: true,
+      hint: 'Four roads from four directions: they climb the spiral towers, run onto the pitch, cross in the middle and head for the tunnel. On the pitch you can build only on the two marked spots.',
+      rules: { money: 260, lives: 25, waves: 19, hpGrowth: 0.15, hpMul: 1.6, countMul: 1.7, tourMul: 0.6, speedMul: 1.15, gapMul: 0.9 },
+      paths: sansiroPaths, paint: paintSanSiro, deco: [[17, 0]],
+      starts: [], goals: [{ key: 'spogliatoi', name: 'Tunnel', c: 7, r: 21, w: 4, h: 3, lx: 130 }],
+      trees: [[0, 0], [5, 0], [12, 0], [0, 23], [17, 23], [16, 21], [12, 23]],
+      blocks: ssBlocks().concat(tramCells('sansiro')), avoid: ssAvoid(),
       monuments: [
-        { key: 'osservatorio', name: 'Osservatorio Vesuviano', c: 11, r: 1,  w: 2, h: 2, hp: 400, reward: 100, penalty: 3 },
-        { key: 'rovine',       name: 'Scavi di Pompei',        c: 0,  r: 11, w: 3, h: 2, hp: 600, reward: 150, penalty: 5 },
-        { key: 'tempio',       name: 'Tempio di Giove',        c: 13, r: 12, w: 3, h: 1, hp: 380, reward: 90,  penalty: 3 },
-        { key: 'colonna',      name: 'Colonna di Pompei',      c: 5,  r: 4,  w: 1, h: 2, hp: 200, reward: 55,  penalty: 2 }
+        { key: 'tabellonemi', name: 'Scoreboard',   c: 7,  r: 0,  w: 3, h: 2, hp: 300, reward: 80, penalty: 3 },
+        { key: 'biglietteria', name: 'Ticket Office', c: 12, r: 21, w: 2, h: 1, hp: 220, reward: 55, penalty: 2 },
+        { key: 'fanstore',    name: 'Fan Store',    c: 4,  r: 21, w: 2, h: 1, hp: 220, reward: 55, penalty: 2 }
       ]
     },
     {
-      id: 'stadio', name: 'Stadio', sub: 'San Paolo', diff: 'Final', cols: 18, rows: 17, crowd: true,
-      hint: "They come down from Vesuvio, go through the gates into the stadium and run along the track to the locker rooms. Two lanes cross on the pitch. Watch out for 'O Munaciello!",
-      rules: { money: 260, lives: 25, waves: 20, hpGrowth: 0.12, hpMul: 1.8, countMul: 1.5, tourMul: 0.6, speedMul: 1.15, gapMul: 1.0 },
-      paths: stadPaths, paint: paintStad, deco: [[17, 16]],
-      goals: [{ key: 'spogliatoi', name: 'Locker Room', c: 7, r: 14, w: 4, h: 3 }],
-      trees: ovTrees(),
-      blocks: ovBlocks(),
+      id: 'duomo', name: 'Duomo', sub: 'Piazza del Duomo', diff: 'Final', cols: 18, rows: 26, farAs: 'roof',
+      hint: 'Three roads through the old town to the Duomo. Roadworks open and close the streets, the pigeons fly over the roofs, and at the end the Madunina comes down from her spire!',
+      rules: { money: 280, lives: 25, waves: 20, hpGrowth: 0.12, hpMul: 1.8, countMul: 1.55, tourMul: 0.6, speedMul: 1.15, gapMul: 1.0 },
+      paths: function () { return [
+        polyPath([[3, -1], [3, 4], [6, 4], [6, 9], [1, 9], [1, 14], [5, 14], [5, 21.3]])(),
+        polyPath([[9, -1], [9, 2], [12, 2], [12, 6], [9, 6], [9, 12], [13, 12], [13, 16], [10, 16], [10, 21.3]])(),
+        polyPath([[14, -1], [14, 4], [16, 4], [16, 18], [12, 18], [12, 21.3]])()
+      ]; },
+      paint: paintDuomo, deco: [[17, 0]],
+      starts: [], goals: [{ key: 'duomo', name: 'Duomo', c: 3, r: 21, w: 12, h: 5, lx: -260 }],
+      trees: [],
+      blocks: [{ c: 9, r: 3, w: 1, h: 3, cant: 1 }, { c: 6, r: 10, w: 1, h: 4, cant: 1 }],
       monuments: [
-        { key: 'tabellone',  name: 'Scoreboard',          c: 7,  r: 5,  w: 3, h: 2, hp: 300, reward: 80, penalty: 3 },
-        { key: 'cartellone', name: 'Advertising Board',   c: 10, r: 5,  w: 2, h: 1, hp: 200, reward: 50, penalty: 2 },
-        { key: 'porta',      name: 'Goal',                c: 8,  r: 11, w: 2, h: 2, hp: 320, reward: 85, penalty: 3 },
-        { key: 'panchina',   name: 'Dugout',              c: 6,  r: 12, w: 2, h: 1, hp: 240, reward: 60, penalty: 2 }
+        { key: 'galleriaing',  name: 'Galleria Vittorio Emanuele II', c: 0, r: 16, w: 3, h: 2, hp: 500, reward: 120, penalty: 4 },
+        { key: 'palazzoreale', name: 'Palazzo Reale',     c: 15, r: 19, w: 3, h: 2, hp: 600, reward: 150, penalty: 5 },
+        { key: 'arengario',    name: 'Arengario',         c: 14, r: 13, w: 2, h: 2, hp: 400, reward: 100, penalty: 3 },
+        { key: 'cavallo',      name: 'Vittorio Emanuele II', c: 7, r: 18, w: 1, h: 1, hp: 160, reward: 45, penalty: 1 }
       ]
     }
   ];
@@ -1955,12 +1993,13 @@ var SND = (function () {
       for (var r = 0; r < ROWS; r++)
         if (distToPath((c + 0.5) * CELL, (r + 0.5) * CELL) <= CELL * 0.62) pathCells[c + ',' + r] = true;
     (stage.deco || []).forEach(function (p) { blocked[p[0] + ',' + p[1]] = true; });
+    (stage.roofs || []).forEach(function (p) { blocked[p[0] + ',' + p[1]] = true; });
     (stage.blocks || []).forEach(function (b) { for (var a = 0; a < b.w; a++) for (var d = 0; d < b.h; d++) blocked[(b.c + a) + ',' + (b.r + d)] = true; });
     (stage.goals || []).concat(stage.starts || []).forEach(function (b) { for (var a = 0; a < b.w; a++) for (var d = 0; d < b.h; d++) blocked[(b.c + a) + ',' + (b.r + d)] = true; });
     var monCells = {};
     stage.monuments.forEach(function (m) { for (var a = 0; a < m.w; a++) for (var b = 0; b < m.h; b++) monCells[(m.c + a) + ',' + (m.r + b)] = true; });
     if (stage.spina) for (var sc = stage.spina.c0; sc <= stage.spina.c1; sc++) if (!monCells[sc + ',' + stage.spina.r]) blocked[sc + ',' + stage.spina.r] = true;
-    if (!stage._dead) {
+    if (!stage._dead && !stage.noFar) {
       stage._dead = true;
       var maxR = 0, tk, tx0 = {}, extraT = [];
       for (tk in TOWERS) maxR = Math.max(maxR, TOWERS[tk].range * 1.16);
@@ -1970,7 +2009,7 @@ var SND = (function () {
         if (tx0[dk] || blocked[dk] || monCells[dk] || pathCells[dk]) continue;
         if (distToPath((dc + 0.5) * CELL, (dr2 + 0.5) * CELL) > maxR) extraT.push([dc, dr2]);
       }
-      if (extraT.length) stage.trees = stage.trees.concat(extraT);
+      if (extraT.length) { if (stage.farAs === 'roof') stage.roofs = (stage.roofs || []).concat(extraT); else stage.trees = stage.trees.concat(extraT); }
     }
     buildGates();
     if (stageIdx === STAGES.length - 1) Object.keys(BOSS_VOX).forEach(function (g2) { BOSS_VOX[g2].forEach(voxLoad); });
@@ -2008,7 +2047,7 @@ var SND = (function () {
     hover = null; gameSpeed = 1; paused = false; updSpeed();
     renderStages();
     pcCaption.textContent = stage.name + ' \u00B7 ' + stage.diff; pcNum.textContent = String(stageIdx + 1);
-    stageSub.textContent = 'Milan TEST (Naples maps) · Tower health · Stage ' + (stageIdx + 1) + ' of 5 · ' + stage.name + ' · ' + stage.diff + ' · ' + MAXW + ' waves';
+    stageSub.textContent = 'Milan · Stage ' + (stageIdx + 1) + ' of 5 · ' + stage.name + ' · ' + stage.diff + ' · ' + MAXW + ' waves';
     reset();
   }
   /* ---------- Tutorial (first game, Rome stage 1) ---------- */
@@ -2535,7 +2574,7 @@ var SND = (function () {
       o = towers[i];
     }
     money += rw; sfx('nemico_sconfitto', 45); sfx('moneta', 110);
-    if (e.kind === 'superboss') { voxPlay(BOSS_VOX.die); flash(BOSS_NAME + ' is down! Naples is saved!'); }
+    if (e.kind === 'superboss') { voxPlay(BOSS_VOX.die); flash(BOSS_NAME + ' is down! Milan is saved!'); }
     fx.push({ k: 'pop', x: e.x, y: e.y, t: 0, life: 0.3, color: e.color });
   }
   function friendDie(f) {
@@ -2867,7 +2906,7 @@ var SND = (function () {
   function fundBest() { var f = menuRead().fund; return (f.f250 | 0) > 0 ? ['f250', 250, f.f250 | 0] : (f.f100 | 0) > 0 ? ['f100', 100, f.f100 | 0] : null; }
   function endGame(win) {
     over = true; overlay.hidden = false; sfx(win ? 'vittoria' : 'sconfitta', 1000); if (tut.on) tutEnd(true);
-    ovTitle.textContent = win ? stage.name + ' defended!' : 'Naples has fallen';
+    ovTitle.textContent = win ? stage.name + ' defended!' : 'Milan has fallen';
     ovStars.hidden = !win; ovStars.innerHTML = '';
     if (win) {
       var sf = lives / R.lives, sn = sf >= 0.9 ? 3 : sf >= 0.5 ? 2 : 1, sr = document.createElement('div'), sc2 = document.createElement('div'), si;
@@ -2890,7 +2929,7 @@ var SND = (function () {
     ovFund.hidden = !fb; ovFH.hidden = win || !!fb;
     if (fb) ovFund.textContent = 'Retry with Salvadanaio +' + fb[1] + ' (' + fb[2] + ' left)';
     else ovFH.textContent = 'Need a hand? Salvadanaio gives extra coins at the start. Find it in the Store.';
-    ovText.textContent = win ? 'You repelled all ' + MAXW + ' waves.' + (nextStage ? ' The next stage awaits.' : (stageIdx < STAGES.length - 1 ? ' Clear stages 1 and 2 to unlock the next ones.' : ' Naples is saved!')) : 'You reached wave ' + wave + '. Try again with a different tower layout.';
+    ovText.textContent = win ? 'You repelled all ' + MAXW + ' waves.' + (nextStage ? ' The next stage awaits.' : (stageIdx < STAGES.length - 1 ? ' Clear stages 1 and 2 to unlock the next ones.' : ' Milan is saved!')) : 'You reached wave ' + wave + '. Try again with a different tower layout.';
   }
 
   /* ---------- Postcard shown at the end of a city ---------- */
@@ -4346,6 +4385,454 @@ var SND = (function () {
   };
   var SKIN_STAT = '#f3c9a5';
   Object.keys(MDN).forEach(function (k) { MONDRAW[k] = MDN[k]; });
+  /* ======================= MILAN: map painting ======================= */
+  var ML = { stone: '#ece6d8', stone2: '#ddd5c3', pave: '#cfc7b6', paveS: ['#aaa190', '#ebe5d6'], brick: '#c7704f', brickD: '#9c5238', marble: '#f3e6e2', marble2: '#e6cfc9', tram: '#f2b41c', roof: ['#c9866a', '#b9b1a3', '#d39a7c', '#a9a294'], glass: 'rgba(196,228,244,0.78)' };
+  function isOcc(c, r) {
+    var L = (stage.monuments || []).concat(stage.blocks || [], stage.goals || [], stage.starts || []), i, b;
+    for (i = 0; i < L.length; i++) { b = L[i]; if (c >= b.c && c < b.c + b.w && r >= b.r && r < b.r + b.h) return true; }
+    return false;
+  }
+  function mlArrows(g) {
+    PS.forEach(function (P) {
+      var a = P.pts[0], b = P.pts[1], ang = Math.atan2(b.y - a.y, b.x - a.x), q, x, y;
+      if (a.y > 0 && a.x > 0 && a.x < W) return;
+      for (q = 0; q < 3; q++) {
+        var d = 12 + q * 13; x = Math.max(0, a.x) + Math.cos(ang) * (a.x < 0 || a.x > W ? d : 0); y = Math.max(0, a.y) + Math.sin(ang) * (a.y < 0 ? d : 0);
+        if (a.x < 0) x = d; if (a.x > W) x = W - d; if (a.y < 0) y = d;
+        g.save(); g.translate(x, y); g.rotate(ang); FP(g, [[-5, -8], [5, 0], [-5, 8]], '#d6403a', 1.6); g.restore();
+      }
+    });
+  }
+  function mlRoofs(g) {
+    (stage.roofs || []).forEach(function (q) {
+      var x = q[0] * CELL, y = q[1] * CELL, k = (q[0] * 7 + q[1] * 3) % 4;
+      FR(g, x + 1, y + 1, CELL - 2, CELL - 2, ML.roof[k], 1.2);
+      g.strokeStyle = 'rgba(80,50,40,0.35)'; g.lineWidth = 1.2; g.beginPath();
+      if (k % 2) { g.moveTo(x + 4, y + CELL / 2); g.lineTo(x + CELL - 4, y + CELL / 2); } else { g.moveTo(x + CELL / 2, y + 4); g.lineTo(x + CELL / 2, y + CELL - 4); } g.stroke();
+      if (k === 1) FR(g, x + 10, y + 9, 6, 8, '#8a7d6e', 1); if (k === 2) FR(g, x + 30, y + 30, 7, 7, '#7d5a48', 1);
+    });
+  }
+  function mlHouse(g, b) {
+    var x = b.c * CELL + 3, y = b.r * CELL + 3, w = b.w * CELL - 6, h = b.h * CELL - 6, i, j, col = ['#e9c99a', '#e8b49a', '#d9c7a8', '#f0d9a8', '#cfd6c4'][(b.i || 0) % 5];
+    g.fillStyle = 'rgba(60,40,20,0.14)'; g.fillRect(x + 3, y + 4, w, h);
+    FR(g, x, y, w, h, col, 1.6); FR(g, x, y, w, 7, '#a8a097', 1.6);
+    for (j = y + 12; j < y + h - 10; j += 19) {
+      for (i = x + 7; i < x + w - 10; i += 14) { FR(g, i, j, 7, 10, '#5a4636', 0.8); FR(g, i - 2, j, 2, 10, '#5f7f6a', 0); FR(g, i + 7, j, 2, 10, '#5f7f6a', 0); }
+      g.strokeStyle = 'rgba(70,60,50,0.7)'; g.lineWidth = 1; g.beginPath(); g.moveTo(x + 2, j + 13); g.lineTo(x + w - 2, j + 13); g.stroke();
+      for (i = x + 4; i < x + w - 2; i += 4) { g.beginPath(); g.moveTo(i, j + 13); g.lineTo(i, j + 16); g.stroke(); }
+    }
+  }
+  function mlTracks(g, id) {
+    var l = TRAM[id]; if (!l) return;
+    var p = l.map(function (c) { return { x: c[0] * CELL, y: c[1] * CELL }; }), i, k;
+    strokePts(g, p, 22, '#9b958a'); strokePts(g, p, 18, '#bdb7aa');
+    for (i = 0; i < p.length - 1; i++) {
+      var a = p[i], b = p[i + 1], L = Math.hypot(b.x - a.x, b.y - a.y), ux = (b.x - a.x) / L, uy = (b.y - a.y) / L;
+      g.strokeStyle = '#7a6a58'; g.lineWidth = 3;
+      for (k = 4; k < L; k += 9) { g.beginPath(); g.moveTo(a.x + ux * k - uy * 9, a.y + uy * k + ux * 9); g.lineTo(a.x + ux * k + uy * 9, a.y + uy * k - ux * 9); g.stroke(); }
+    }
+    [-5, 5].forEach(function (o) {
+      var q = p.map(function (pt, n) { var nb = p[Math.min(n + 1, p.length - 1)], pv = p[Math.max(n - 1, 0)], dx = nb.x - pv.x, dy = nb.y - pv.y, L = Math.hypot(dx, dy) || 1; return { x: pt.x - dy / L * o, y: pt.y + dx / L * o }; });
+      strokePts(g, q, 2.4, '#5d6570');
+    });
+    var z = p[0], z1 = p[1], an = Math.atan2(z1.y - z.y, z1.x - z.x), sx = Math.max(16, Math.min(W - 16, z.x)) + Math.cos(an) * 30, sy = Math.max(0, z.y) + Math.sin(an) * 30 + (z.y < 0 ? 18 : 0);
+    if (z.x < 0) { sx = 40; sy = z.y - 24; }
+    RR(g, sx - 15, sy - 9, 30, 18, 4, ML.tram, 1.6); g.fillStyle = '#3b2d1d'; g.font = '700 9px "DM Sans", sans-serif'; g.textAlign = 'center'; g.fillText('TRAM', sx, sy + 3);
+  }
+  function paintCastello(g) {
+    paintCommon(g, {
+      ground: '#cfdea3', tuft: true, noExit: true, joins: [null],
+      road: { fill: '#e6dcc0', specks: ['#c4b694', '#f6efdc'] },
+      before: function (g2) {
+        var lx = 0, ly = 4 * CELL;
+        FE(g2, lx + 72, ly + 74, 70, 58, '#7ec3e2', 2.2); FE(g2, lx + 66, ly + 68, 54, 40, '#9fd6ee', 0);
+        g2.strokeStyle = 'rgba(255,255,255,0.7)'; g2.lineWidth = 1.5; [[50, 60], [86, 84], [70, 100]].forEach(function (w) { g2.beginPath(); g2.arc(lx + w[0], ly + w[1], 6, Math.PI * 1.1, Math.PI * 1.9); g2.stroke(); });
+        FE(g2, lx + 98, ly + 58, 8, 4, '#fff', 1); FC(g2, lx + 104, ly + 54, 3, '#fff', 1);
+        g2.fillStyle = 'rgba(110,150,70,0.25)';
+        for (var i = 0; i < 9; i++) { g2.beginPath(); g2.ellipse(((i * 151) % 17 + 0.5) * CELL, ((i * 89) % 14 + 0.5) * CELL, 30, 14, 0, 0, TAU); g2.fill(); }
+      },
+      after: mlArrows
+    });
+  }
+  function paintNavigli(g) {
+    paintCommon(g, {
+      ground: '#e6dfcd', tuft: false, noExit: true, joins: [null, null],
+      road: { fill: ML.pave, specks: ML.paveS },
+      pins: [{ pi: 0, f: 0.12, l: 'A' }, { pi: 1, f: 0.12, l: 'B' }],
+      before: function (g2) {
+        var x0 = 8 * CELL, y0 = 3 * CELL, w = 2 * CELL, h = 10 * CELL + 8, i;
+        FR(g2, x0 - 5, y0, w + 10, h, '#b9ab90', 0);
+        var gr = g2.createLinearGradient(x0, 0, x0 + w, 0); gr.addColorStop(0, '#4f9cc0'); gr.addColorStop(0.5, '#6fb8d6'); gr.addColorStop(1, '#4f9cc0');
+        g2.fillStyle = gr; g2.fillRect(x0, y0, w, h);
+        g2.strokeStyle = 'rgba(255,255,255,0.55)'; g2.lineWidth = 1.4;
+        for (i = 0; i < 14; i++) { var wy = y0 + 20 + i * 34, wx = x0 + 18 + (i % 3) * 22; g2.beginPath(); g2.arc(wx, wy, 6, Math.PI * 1.15, Math.PI * 1.85); g2.stroke(); }
+        [[x0 + 10, y0 + 70, '#d6403a'], [x0 + 50, y0 + 230, '#f2c230'], [x0 + 12, y0 + 360, '#3f9a52']].forEach(function (b) { FP(g2, [[b[0], b[1]], [b[0] + 26, b[1]], [b[0] + 22, b[1] + 10], [b[0] + 4, b[1] + 10]], b[2], 1.4); });
+      },
+      after: function (g2) {
+        stage.blocks.forEach(function (b) { if (!b.canal) mlHouse(g2, b); });
+        [[6.5, 0], [9.5, 1]].forEach(function (br) {
+          var y = br[0] * CELL, x0 = 8 * CELL - 6, x1 = 10 * CELL + 6;
+          FR(g2, x0, y - 24, x1 - x0, 48, '#d8cdb6', 1.8);
+          FR(g2, x0, y - 27, x1 - x0, 6, '#9a8f7a', 1.4); FR(g2, x0, y + 21, x1 - x0, 6, '#9a8f7a', 1.4);
+          for (var k = 0; k < 5; k++) { FR(g2, x0 + 4 + k * 22, y - 27, 3, 6, '#6b5a45', 0); FR(g2, x0 + 4 + k * 22, y + 21, 3, 6, '#6b5a45', 0); }
+        });
+        PS.forEach(function (P) { g2.beginPath(); g2.moveTo(P.pts[0].x, P.pts[0].y); for (var q = 1; q < P.pts.length; q++) g2.lineTo(P.pts[q].x, P.pts[q].y); g2.strokeStyle = '#d6403a'; g2.lineWidth = 3.2; g2.lineCap = 'round'; g2.setLineDash([0.1, 9]); g2.stroke(); g2.setLineDash([]); });
+      }
+    });
+  }
+  function paintCorso(g) {
+    paintCommon(g, {
+      ground: '#e8e2d4', tuft: false, noExit: true, joins: [null, null],
+      road: { fill: '#d9d1c0', specks: ML.paveS },
+      pins: [{ pi: 0, f: 0.12, l: 'A' }, { pi: 1, f: 0.08, l: 'B' }],
+      before: function (g2) { mlFabric(g2, function (c, r) { return isOcc(c, r); }); mlRoofs(g2); mlTracks(g2, 'corso'); },
+      after: function (g2) {
+        stage.blocks.forEach(function (b) { if (b.i !== undefined) mlHouse(g2, b); });
+        var c = GAL.c, r = GAL.r, i;
+        /* galleria wings: arcaded buildings along the arms */
+        stage.blocks.forEach(function (b) { if (!b.gal) return; var x = b.c * CELL, y = b.r * CELL; FR(g2, x + 1, y + 1, CELL - 2, CELL - 2, '#eadcc0', 1.2); FR(g2, x + 1, y + 1, CELL - 2, 8, '#cdb894', 1.2); for (i = 0; i < 3; i++) arch(g2, x + 6 + i * 13, y + CELL - 3, 9, 14, '#6b5a45', 0.8); });
+        /* glass vaults over the roads */
+        function vault(x, y, w, h, horiz) {
+          g2.fillStyle = ML.glass; g2.fillRect(x, y, w, h); ol(g2, 1.6); g2.strokeRect(x, y, w, h);
+          g2.strokeStyle = 'rgba(70,90,110,0.65)'; g2.lineWidth = 1.2; var k;
+          if (horiz) { for (k = x + 8; k < x + w; k += 12) { g2.beginPath(); g2.moveTo(k, y); g2.lineTo(k, y + h); g2.stroke(); } g2.beginPath(); g2.moveTo(x, y + h / 2); g2.lineTo(x + w, y + h / 2); g2.stroke(); }
+          else { for (k = y + 8; k < y + h; k += 12) { g2.beginPath(); g2.moveTo(x, k); g2.lineTo(x + w, k); g2.stroke(); } g2.beginPath(); g2.moveTo(x + w / 2, y); g2.lineTo(x + w / 2, y + h); g2.stroke(); }
+          g2.fillStyle = 'rgba(255,255,255,0.45)'; if (horiz) g2.fillRect(x, y + 4, w, 4); else g2.fillRect(x + 4, y, 4, h);
+        }
+        vault(GAL.h0 * CELL, r * CELL, (GAL.h1 - GAL.h0 + 1) * CELL, CELL, true);
+        vault(c * CELL, GAL.v0 * CELL, CELL, (GAL.v1 - GAL.v0 + 1) * CELL, false);
+        var ox = (c + 0.5) * CELL, oy = (r + 0.5) * CELL, R0 = 40, pts8 = [];
+        for (i = 0; i < 8; i++) pts8.push([ox + Math.cos(i * Math.PI / 4 + Math.PI / 8) * R0, oy + Math.sin(i * Math.PI / 4 + Math.PI / 8) * R0]);
+        FP(g2, pts8, 'rgba(206,234,248,0.92)', 2);
+        g2.strokeStyle = 'rgba(70,90,110,0.7)'; g2.lineWidth = 1.2; for (i = 0; i < 8; i++) { g2.beginPath(); g2.moveTo(ox, oy); g2.lineTo(pts8[i][0], pts8[i][1]); g2.stroke(); }
+        g2.beginPath(); g2.arc(ox, oy, 20, 0, TAU); g2.stroke(); FC(g2, ox, oy, 6, '#e8b84a', 1.4);
+        g2.font = '700 9px "DM Sans", sans-serif'; g2.textAlign = 'center'; g2.lineWidth = 3; g2.strokeStyle = 'rgba(255,255,255,0.92)'; g2.strokeText('GALLERIA', ox, oy - R0 - 6); g2.fillStyle = '#4a3d2e'; g2.fillText('GALLERIA', ox, oy - R0 - 6);
+      }
+    });
+  }
+  function paintSanSiro(g) {
+    var PX = CELL, cx = SS.cx * PX, cy = SS.cy * PX;
+    paintCommon(g, {
+      ground: '#d8d4c8', tuft: false, noExit: true, joins: [null, null, null, null],
+      road: { fill: '#c9c2b2', specks: ML.paveS },
+      pins: [{ pi: 0, f: 0.07, l: 'A' }, { pi: 1, f: 0.07, l: 'B' }, { pi: 2, f: 0.08, l: 'C' }, { pi: 3, f: 0.08, l: 'D' }],
+      before: function (g2) {
+        var c, r, k;
+        /* outside plaza: parked cars and flags */
+        for (r = 0; r < 24; r++) for (c = 0; c < 18; c++) {
+          if (ssIn(c, r, SS.rxo + 0.3, SS.ryo + 0.3) || (c >= 6 && c <= 11 && r >= 20) || r <= 1 && c >= 6 && c <= 10) continue;
+          var hsh = (c * 13 + r * 7) % 11, x = c * PX, y = r * PX;
+          if (hsh === 4) { FR(g2, x + 8, y + 16, 32, 15, ['#d6403a', '#2f6fb0', '#f2c230', '#25252f'][(c + r) % 4], 1.4); FR(g2, x + 14, y + 11, 20, 7, 'rgba(210,235,250,0.95)', 1.1); }
+        }
+        mlTracks(g2, 'sansiro');
+        /* stadium bowl */
+        g2.fillStyle = 'rgba(0,0,0,0.2)'; g2.beginPath(); g2.ellipse(cx + 6, cy + 9, SS.rxo * PX, SS.ryo * PX, 0, 0, TAU); g2.fill();
+        g2.fillStyle = '#9aa1ad'; g2.beginPath(); g2.ellipse(cx, cy, SS.rxo * PX, SS.ryo * PX, 0, 0, TAU); g2.fill(); ol(g2, 3); g2.stroke();
+        /* stands: north half nerazzurra, south half rossonera */
+        for (k = 0; k < 6; k++) {
+          var f = 1 - k * 0.075, rx = SS.rxo * PX * f - 6, ry = SS.ryo * PX * f - 6;
+          g2.lineWidth = 10; g2.setLineDash([9, 4]);
+          g2.strokeStyle = k % 2 ? '#1f4fa0' : '#25252f'; g2.beginPath(); g2.ellipse(cx, cy, rx, ry, 0, Math.PI, TAU); g2.stroke();
+          g2.strokeStyle = k % 2 ? '#c8302c' : '#25252f'; g2.beginPath(); g2.ellipse(cx, cy, rx, ry, 0, 0, Math.PI); g2.stroke();
+        }
+        g2.setLineDash([]);
+        /* red roof girders on the rim */
+        g2.strokeStyle = '#d6403a'; g2.lineWidth = 5; g2.beginPath(); g2.ellipse(cx, cy, SS.rxo * PX - 3, SS.ryo * PX - 3, 0, 0, TAU); g2.stroke();
+        /* pitch */
+        var gx = SS.rxi * PX, gy = SS.ryi * PX, i;
+        g2.fillStyle = '#4f9a55'; g2.beginPath(); g2.ellipse(cx, cy, gx + 8, gy + 8, 0, 0, TAU); g2.fill();
+        g2.save(); g2.beginPath(); g2.ellipse(cx, cy, gx + 8, gy + 8, 0, 0, TAU); g2.clip();
+        for (i = 0; i < 14; i++) { g2.fillStyle = i % 2 ? '#5aa860' : '#4c9852'; g2.fillRect(cx - gx - 8, cy - gy - 8 + i * ((2 * gy + 16) / 14), 2 * gx + 16, (2 * gy + 16) / 14 + 1); }
+        g2.restore();
+        var pw = gx * 0.78, ph = gy * 0.82; g2.strokeStyle = 'rgba(255,255,255,0.85)'; g2.lineWidth = 2.4;
+        g2.strokeRect(cx - pw, cy - ph, 2 * pw, 2 * ph); g2.beginPath(); g2.moveTo(cx - pw, cy); g2.lineTo(cx + pw, cy); g2.stroke();
+        g2.beginPath(); g2.arc(cx, cy, 1.6 * PX, 0, TAU); g2.stroke();
+        g2.strokeRect(cx - 2.6 * PX, cy - ph, 5.2 * PX, 1.9 * PX); g2.strokeRect(cx - 2.6 * PX, cy + ph - 1.9 * PX, 5.2 * PX, 1.9 * PX);
+        /* the four spiral towers */
+        SS.T.forEach(function (t) {
+          var tx = t[0] * PX, ty = t[1] * PX, rr = SS.tr * PX;
+          g2.fillStyle = 'rgba(0,0,0,0.22)'; g2.beginPath(); g2.arc(tx + 4, ty + 6, rr + 22, 0, TAU); g2.fill();
+          FC(g2, tx, ty, rr + 20, '#b8b2a5', 2.2);
+        });
+      },
+      after: function (g2) {
+        SS.T.forEach(function (t) {
+          var tx = t[0] * PX, ty = t[1] * PX, rr = SS.tr * PX, k;
+          FC(g2, tx, ty, rr, '#cfc9bc', 2.2); FC(g2, tx, ty, rr * 0.62, '#a9a294', 1.4);
+          g2.strokeStyle = 'rgba(90,80,70,0.55)'; g2.lineWidth = 1.4; g2.beginPath();
+          for (k = 0; k <= 60; k++) { var a = k / 60 * TAU * 2.5, rad = rr * (0.62 + 0.38 * k / 60); if (k) g2.lineTo(tx + Math.cos(a) * rad, ty + Math.sin(a) * rad); else g2.moveTo(tx + Math.cos(a) * rad, ty + Math.sin(a) * rad); } g2.stroke();
+          FC(g2, tx, ty, 6, '#d6403a', 1.2);
+        });
+        SS_SPOTS.forEach(function (q) { var x = (q[0] + 0.5) * PX, y = (q[1] + 0.5) * PX; g2.strokeStyle = 'rgba(255,255,255,0.95)'; g2.lineWidth = 2.5; g2.setLineDash([5, 4]); g2.beginPath(); g2.arc(x, y, 17, 0, TAU); g2.stroke(); g2.setLineDash([]); FC(g2, x, y, 3, '#ffffff', 0); });
+        g2.font = '700 9px "DM Sans", sans-serif'; g2.textAlign = 'center'; g2.lineWidth = 3; g2.strokeStyle = 'rgba(0,0,0,0.55)';
+        [['CURVA NORD', 2.75], ['CURVA SUD', 19.75]].forEach(function (l) { g2.strokeText(l[0], cx, l[1] * PX); g2.fillStyle = '#ffffff'; g2.fillText(l[0], cx, l[1] * PX); });
+        mlArrows(g2);
+      }
+    });
+  }
+  function paintDuomo(g) {
+    paintCommon(g, {
+      ground: '#ebe4d6', tuft: false, noExit: true, joins: [null, null, null],
+      road: { fill: '#d6cebd', specks: ML.paveS },
+      pins: [{ pi: 0, f: 0.1, l: 'A' }, { pi: 1, f: 0.1, l: 'B' }, { pi: 2, f: 0.1, l: 'C' }],
+      before: function (g2) {
+        var i, j;
+        /* the piazza: big stone slabs in front of the cathedral */
+        RR(g2, 1.5 * CELL, 15 * CELL, 15 * CELL, 6.4 * CELL, 12, '#f2ece0', 1.2);
+        g2.strokeStyle = 'rgba(150,135,110,0.3)'; g2.lineWidth = 1;
+        for (i = 2; i < 17; i++) { g2.beginPath(); g2.moveTo(i * CELL, 15 * CELL + 4); g2.lineTo(i * CELL, 21.3 * CELL); g2.stroke(); }
+        for (j = 16; j < 22; j++) { g2.beginPath(); g2.moveTo(1.5 * CELL + 4, j * CELL); g2.lineTo(16.5 * CELL - 4, j * CELL); g2.stroke(); }
+        mlFabric(g2, function (c, r) { return isOcc(c, r) || (r >= 15 && c >= 1 && c <= 16); });
+        mlRoofs(g2);
+        /* closed roads under roadworks (they will open later in the game) */
+        CANT.forEach(function (cn) { var p = cn.pts.map(function (q) { return { x: q[0] * CELL, y: q[1] * CELL }; }); strokePts(g2, p, CELL - 2, '#6b5a45'); strokePts(g2, p, CELL - 6, '#c9c1b0'); });
+      },
+      after: function (g2) {
+        CANT.forEach(function (cn) {
+          var p = cn.pts.map(function (q) { return { x: q[0] * CELL, y: q[1] * CELL }; }), k;
+          g2.strokeStyle = 'rgba(230,120,30,0.55)'; g2.lineWidth = 3; g2.setLineDash([6, 6]); g2.beginPath(); g2.moveTo(p[0].x, p[0].y); for (k = 1; k < p.length; k++) g2.lineTo(p[k].x, p[k].y); g2.stroke(); g2.setLineDash([]);
+          [p[0], p[p.length - 1]].forEach(function (e, n) {
+            var nb = n ? p[p.length - 2] : p[1], ang = Math.atan2(nb.y - e.y, nb.x - e.x), bx = e.x + Math.cos(ang) * 30, by = e.y + Math.sin(ang) * 30;
+            g2.save(); g2.translate(bx, by); g2.rotate(ang + Math.PI / 2);
+            FR(g2, -20, -5, 40, 10, '#f4f1e6', 1.6); for (var s = 0; s < 4; s++) FP(g2, [[-18 + s * 10, 5], [-13 + s * 10, -5], [-9 + s * 10, -5], [-14 + s * 10, 5]], '#e0443a', 0); FR(g2, -20, -5, 40, 10, 'rgba(0,0,0,0)', 1.6);
+            g2.restore();
+          });
+          var m = p[Math.floor(p.length / 2)], m0 = p[Math.floor(p.length / 2) - 1] || p[0], mx = (m.x + m0.x) / 2, my = (m.y + m0.y) / 2;
+          FP(g2, [[mx - 12, my + 10], [mx, my - 12], [mx + 12, my + 10]], '#f2c14e', 1.8); g2.fillStyle = OUT; g2.font = '700 12px "DM Sans", sans-serif'; g2.textAlign = 'center'; g2.fillText('!', mx, my + 7);
+        });
+        /* the pigeons' own flight line over the roofs */
+        var pp = PIGEON.map(function (q) { return { x: q[0] * CELL, y: q[1] * CELL }; }), k;
+        g2.strokeStyle = 'rgba(80,160,220,0.85)'; g2.lineWidth = 2.6; g2.setLineDash([2, 7]); g2.lineCap = 'round';
+        g2.beginPath(); g2.moveTo(pp[0].x, pp[0].y); for (k = 1; k < pp.length - 1; k++) { var mx2 = (pp[k].x + pp[k + 1].x) / 2, my2 = (pp[k].y + pp[k + 1].y) / 2; g2.quadraticCurveTo(pp[k].x, pp[k].y, mx2, my2); } g2.lineTo(pp[pp.length - 1].x, pp[pp.length - 1].y); g2.stroke(); g2.setLineDash([]);
+        [pp[1], pp[3], pp[5]].forEach(function (q) { g2.save(); g2.translate(q.x, q.y); FE(g2, 0, 0, 6, 4, '#9aa4b0', 1.2); FP(g2, [[-2, -1], [-9, -7], [3, -2]], '#c3cad3', 1); FC(g2, 6, -2, 2.6, '#7d8794', 1); g2.restore(); });
+        mlArrows(g2);
+      }
+    });
+  }
+
+  function pine(g, x, y) {
+    g.save(); g.translate(x, y + 8); g.scale(0.42, 0.42); g.translate(-x, -y - 8);
+    g.fillStyle = 'rgba(0,0,0,0.18)'; g.beginPath(); g.ellipse(x + 3, y + 18, 17, 5.5, 0, 0, TAU); g.fill();
+    FR(g, x - 3, y - 2, 6, 20, '#8a6a48', 1.6);
+    FC(g, x - 9, y - 8, 12, '#5f9e4a', 1.8); FC(g, x + 9, y - 9, 12, '#5f9e4a', 1.8); FC(g, x, y - 18, 14, '#6cae55', 1.8);
+    FC(g, x - 4, y - 21, 5, 'rgba(255,255,255,0.18)', 0);
+    g.restore();
+  }
+  /* old-town fabric: pale rooftops under the free cells between the roads (decoration only, towers can stand there) */
+  function mlFabric(g, skip) {
+    var c, r, k;
+    for (r = 0; r < ROWS; r++) for (c = 0; c < COLS; c++) {
+      var x = c * CELL, y = r * CELL;
+      if (skip && skip(c, r)) continue;
+      if (distToPath(x + CELL / 2, y + CELL / 2) < CELL * 0.95) continue;
+      k = (c * 5 + r * 3) % 3;
+      g.fillStyle = ['#e2d3c2', '#dccfc0', '#e6d9c9'][k]; g.fillRect(x + 2, y + 2, CELL - 4, CELL - 4);
+      g.strokeStyle = 'rgba(150,120,95,0.35)'; g.lineWidth = 1; g.strokeRect(x + 2, y + 2, CELL - 4, CELL - 4);
+      if (k === 0) { g.fillStyle = 'rgba(160,130,100,0.22)'; g.fillRect(x + 14, y + 14, CELL - 28, CELL - 28); }
+    }
+  }
+  /* ======================= MILAN: monuments and obstacles ======================= */
+  var MLN = {
+    castello: function (g, x0, y0, w, h, cx) {
+      var by = y0 + h * 0.36, bh = h * 0.58, i, top = Math.max(4, y0 + h * 0.02);
+      FR(g, x0 + 10, by, w - 20, bh, ML.brick, 2.2);
+      g.strokeStyle = 'rgba(90,40,25,0.35)'; g.lineWidth = 1; for (i = 1; i < 5; i++) { g.beginPath(); g.moveTo(x0 + 11, by + i * bh / 5); g.lineTo(x0 + w - 11, by + i * bh / 5); g.stroke(); }
+      function merl(x, y, n, s) { for (var k = 0; k < n; k++) FP(g, [[x + k * s, y], [x + k * s, y - 6], [x + k * s + s * 0.3, y - 3], [x + k * s + s * 0.6, y - 6], [x + k * s + s * 0.6, y]], ML.brickD, 1); }
+      merl(x0 + 12, by, Math.floor((w - 24) / 9), 9);
+      [x0 + 12, x0 + w - 12].forEach(function (tx) { FR(g, tx - 13, by - 8, 26, bh + 8, '#b8654a', 2); FE(g, tx, by - 8, 13, 5, '#cf7a5b', 1.6); merl(tx - 12, by - 8, 3, 9); });
+      var tw = Math.min(40, w * 0.22), tx0 = cx - tw / 2;
+      FR(g, tx0, top + 18, tw, by - top - 18 + bh * 0.6, '#cf7a5b', 2.2);
+      FR(g, tx0 + 4, top + 6, tw - 8, 14, '#d88a69', 2); FC(g, cx, top + 6, 7, '#e8d9b0', 1.6); FR(g, cx - 1, top - 6, 2, 8, OUT, 0);
+      FC(g, cx, top + 30, 6.5, '#f4ecd6', 1.4); g.strokeStyle = OUT; g.lineWidth = 1.2; g.beginPath(); g.moveTo(cx, top + 30); g.lineTo(cx, top + 26); g.moveTo(cx, top + 30); g.lineTo(cx + 3, top + 31); g.stroke();
+      arch(g, cx - 11, y0 + h - 6, 22, 12, '#3a2c24', 2);
+      for (i = 0; i < 2; i++) { arch(g, x0 + 34 + i * 18, by + 26, 8, 8, '#4a3a30', 1.2); arch(g, x0 + w - 42 - i * 18, by + 26, 8, 8, '#4a3a30', 1.2); }
+    },
+    darsena: function (g, x0, y0, w, h, cx) {
+      FR(g, x0 + 4, y0 + 6, w - 8, h - 10, '#b9ab90', 2);
+      var gr = g.createLinearGradient(0, y0, 0, y0 + h); gr.addColorStop(0, '#5aa7cc'); gr.addColorStop(1, '#3f8db4');
+      g.fillStyle = gr; g.fillRect(x0 + 12, y0 + 14, w - 24, h - 26); ol(g, 1.6); g.strokeRect(x0 + 12, y0 + 14, w - 24, h - 26);
+      g.strokeStyle = 'rgba(255,255,255,0.55)'; g.lineWidth = 1.3; for (var i = 0; i < 6; i++) { g.beginPath(); g.arc(x0 + 30 + (i * 47) % (w - 50), y0 + 26 + (i * 23) % (h - 44), 6, Math.PI * 1.15, Math.PI * 1.85); g.stroke(); }
+      [[0.2, '#d6403a'], [0.5, '#f2c230'], [0.75, '#3f9a52']].forEach(function (b, n) { var bx = x0 + w * b[0], byy = y0 + h * (n % 2 ? 0.62 : 0.45); FP(g, [[bx - 16, byy], [bx + 16, byy], [bx + 12, byy + 9], [bx - 12, byy + 9]], b[1], 1.4); FR(g, bx - 4, byy - 7, 8, 7, '#f4ecd6', 1); });
+    },
+    sanbabila: function (g, x0, y0, w, h, cx) {
+      var by = y0 + h * 0.46, cl = x0 + 14, cw = w * 0.42;
+      FR(g, cl, by, cw, h * 0.5, ML.brick, 2.2); FP(g, [[cl - 4, by + 2], [cl + cw / 2, by - 18], [cl + cw + 4, by + 2]], ML.brickD, 2);
+      arch(g, cl + cw / 2 - 10, y0 + h - 6, 20, 12, '#3a2c24', 1.8); FC(g, cl + cw / 2, by + 13, 6.5, '#f4ecd6', 1.4);
+      var tx = x0 + w - 46; FR(g, tx, y0 + h * 0.28, 22, h * 0.68, '#b8654a', 2); FP(g, [[tx - 2, y0 + h * 0.28 + 2], [tx + 11, y0 + h * 0.28 - 12], [tx + 24, y0 + h * 0.28 + 2]], ML.brickD, 1.8);
+      arch(g, tx + 6, y0 + h * 0.28 + 22, 10, 6, '#3a2c24', 1.2);
+      FR(g, cx - 5, y0 + 34, 10, h - 40, '#e6dcc0', 1.6); FR(g, cx - 10, y0 + h - 10, 20, 6, '#d6ccb0', 1.6);
+      FE(g, cx, y0 + 30, 10, 6, '#c9a15a', 1.6); FC(g, cx + 7, y0 + 25, 4.5, '#c9a15a', 1.4); FR(g, cx - 9, y0 + 31, 3, 5, '#a8823e', 0.8);
+    },
+    duomo: function (g, x0, y0, w, h, cx) {
+      var fy = y0 + h * 0.30, i, n = 6, bw = (w - 28) / n, gr;
+      /* central spire (tiburio) rising behind the facade, with the golden Madunina */
+      var st = y0 - 118;
+      g.fillStyle = 'rgba(0,0,0,0.12)'; g.beginPath(); g.ellipse(cx + 10, y0 - 4, 30, 8, 0, 0, TAU); g.fill();
+      FP(g, [[cx - 22, y0 + 10], [cx - 16, y0 - 40], [cx + 16, y0 - 40], [cx + 22, y0 + 10]], '#efdcd6', 2);
+      for (i = -1; i <= 1; i++) arch(g, cx + i * 11 - 3, y0 - 4, 6, 18, '#cdb3ad', 0.8);
+      FP(g, [[cx - 14, y0 - 40], [cx - 6, st + 30], [cx + 6, st + 30], [cx + 14, y0 - 40]], '#f6ece8', 1.8);
+      for (i = 0; i < 4; i++) { var yy = y0 - 46 - i * 16, hw = 12 - i * 2; FP(g, [[cx - hw, yy], [cx - hw - 4, yy - 6], [cx - hw + 1, yy - 3]], '#f6ece8', 0.8); FP(g, [[cx + hw, yy], [cx + hw + 4, yy - 6], [cx + hw - 1, yy - 3]], '#f6ece8', 0.8); }
+      FR(g, cx - 3, st + 14, 6, 18, '#e6cfc9', 1.2);
+      gr = g.createRadialGradient(cx, st + 6, 2, cx, st + 6, 22); gr.addColorStop(0, 'rgba(255,225,120,0.75)'); gr.addColorStop(1, 'rgba(255,225,120,0)'); g.fillStyle = gr; g.beginPath(); g.arc(cx, st + 6, 22, 0, TAU); g.fill();
+      FP(g, [[cx - 5.5, st + 15], [cx - 3, st + 3], [cx + 3, st + 3], [cx + 5.5, st + 15]], '#f2c230', 1.3);
+      FC(g, cx, st + 1, 3, '#f2c230', 1.1); FP(g, [[cx + 2, st + 5], [cx + 9, st - 3], [cx + 10, st - 1], [cx + 4, st + 7]], '#f2c230', 0.9); FR(g, cx + 9, st - 9, 1.4, 8, '#c9962a', 0);
+      /* facade */
+      gr = g.createLinearGradient(0, fy, 0, y0 + h); gr.addColorStop(0, '#f7ecea'); gr.addColorStop(1, '#ead4cf');
+      g.fillStyle = 'rgba(0,0,0,0.16)'; g.fillRect(x0 + 18, fy + 8, w - 28, h - (fy - y0) - 8);
+      FR(g, x0 + 14, fy, w - 28, h - (fy - y0) - 2, gr, 2.4);
+      /* stepped gable */
+      FP(g, [[x0 + 14 + bw, fy + 1], [x0 + 14 + bw, fy - 14], [x0 + 14 + 2 * bw, fy - 30], [cx, fy - h * 0.2], [x0 + w - 14 - 2 * bw, fy - 30], [x0 + w - 14 - bw, fy - 14], [x0 + w - 14 - bw, fy + 1]], '#f3e3df', 2.2);
+      g.strokeStyle = 'rgba(150,110,100,0.5)'; g.lineWidth = 1;
+      for (i = 0; i < 14; i++) { var t = i / 13, ex = x0 + 14 + 2 * bw + (cx - x0 - 14 - 2 * bw) * t, ey = fy - 30 + (fy - h * 0.2 - fy + 30) * t; FP(g, [[ex - 2, ey + 1], [ex, ey - 7], [ex + 2, ey + 1]], '#f6ece8', 0.7); FP(g, [[2 * cx - ex - 2, ey + 1], [2 * cx - ex, ey - 7], [2 * cx - ex + 2, ey + 1]], '#f6ece8', 0.7); }
+      FC(g, cx, fy - 14, 13, '#d9c2bc', 1.6); for (i = 0; i < 8; i++) { g.beginPath(); g.moveTo(cx, fy - 14); g.lineTo(cx + Math.cos(i * 0.785) * 13, fy - 14 + Math.sin(i * 0.785) * 13); g.stroke(); } FC(g, cx, fy - 14, 4, '#b8925a', 0.8);
+      /* buttresses topped by tall spires, each with a little golden statue */
+      for (i = 0; i <= n; i++) {
+        var px = x0 + 14 + i * bw, tall = (i === 0 || i === n) ? 70 : (i === 1 || i === n - 1) ? 58 : 44;
+        FR(g, px - 6, fy - tall + 26, 12, h - (fy - y0) - 2 + tall - 26, '#f3e3df', 1.6);
+        FP(g, [[px - 6, fy - tall + 26], [px, fy - tall], [px + 6, fy - tall + 26]], '#f6ece8', 1.4);
+        FP(g, [[px - 3, fy - tall + 4], [px - 7, fy - tall + 10], [px - 2, fy - tall + 9]], '#f6ece8', 0.6); FP(g, [[px + 3, fy - tall + 4], [px + 7, fy - tall + 10], [px + 2, fy - tall + 9]], '#f6ece8', 0.6);
+        FC(g, px, fy - tall - 2, 2.4, '#e8b84a', 0.8);
+        for (var k = 0; k < 3; k++) arch(g, px - 3, fy + 20 + k * 42, 6, 10, 'rgba(160,120,110,0.35)', 0);
+      }
+      /* lancet windows in the upper band, portals below */
+      for (i = 0; i < n; i++) {
+        var mx = x0 + 14 + (i + 0.5) * bw, big = i === 2 || i === 3;
+        arch(g, mx - 7, fy + (big ? 62 : 56), 14, big ? 26 : 22, '#8fb7d4', 1.4); g.strokeStyle = 'rgba(60,80,100,0.6)'; g.lineWidth = 1; g.beginPath(); g.moveTo(mx, fy + (big ? 62 : 56)); g.lineTo(mx, fy + (big ? 28 : 28)); g.stroke();
+        FP(g, [[mx - 16, fy + 88], [mx, fy + 72], [mx + 16, fy + 88]], '#f3e3df', 1.2);
+      }
+      var doors = [[cx, 30, 52], [x0 + 14 + 0.5 * bw, 18, 34], [x0 + 14 + 1.5 * bw, 20, 38], [x0 + w - 14 - 1.5 * bw, 20, 38], [x0 + w - 14 - 0.5 * bw, 18, 34]];
+      doors.forEach(function (d) { FR(g, d[0] - d[1] / 2 - 5, y0 + h - d[2] - 14, d[1] + 10, d[2] + 12, '#ead4cf', 1.4); arch(g, d[0] - d[1] / 2, y0 + h - 3, d[1], d[2] - d[1] / 2, '#7a5236', 1.8); g.strokeStyle = 'rgba(40,25,15,0.5)'; g.lineWidth = 1; g.beginPath(); g.moveTo(d[0], y0 + h - 3); g.lineTo(d[0], y0 + h - d[2] + 2); g.stroke(); FP(g, [[d[0] - d[1] / 2 - 5, y0 + h - d[2] - 14], [d[0], y0 + h - d[2] - 30], [d[0] + d[1] / 2 + 5, y0 + h - d[2] - 14]], '#f3e3df', 1.2); });
+    },
+    tabellonemi: function (g, x0, y0, w, h, cx, cy) {
+      FR(g, x0 + w / 2 - 3, y0 + h * 0.6, 6, h * 0.34, '#5c6579', 1.2); FR(g, x0 + w * 0.2, y0 + h * 0.62, w * 0.6, 5, '#5c6579', 1);
+      FR(g, x0 + 5, y0 + 6, w - 10, h * 0.56, '#232a36', 2.2); FR(g, x0 + 9, y0 + 10, w - 18, h * 0.56 - 8, '#0e1a2c', 0);
+      g.font = '700 12px "DM Sans", sans-serif'; g.textAlign = 'center';
+      g.fillStyle = '#ff6a5a'; g.fillText('MIL', cx - 38, y0 + h * 0.34 + 4); g.fillStyle = '#ffd45a'; g.fillText('1 - 1', cx, y0 + h * 0.34 + 4); g.fillStyle = '#6fb0ff'; g.fillText('INT', cx + 38, y0 + h * 0.34 + 4);
+      g.fillStyle = '#c8302c'; g.fillRect(x0 + 14, y0 + h * 0.46, (w - 28) / 2, 2); g.fillStyle = '#1f4fa0'; g.fillRect(cx, y0 + h * 0.46, (w - 28) / 2, 2);
+    },
+    arcopace: function (g, x0, y0, w, h, cx) {
+      FR(g, x0 + 6, y0 + 32, w - 12, h - 38, '#f1ead8', 2.2); FR(g, x0 + 3, y0 + 26, w - 6, 9, '#ddd3bb', 2);
+      arch(g, cx - 11, y0 + h - 6, 22, 22, '#3a2c24', 2); arch(g, x0 + 10, y0 + h - 6, 10, 12, '#3a2c24', 1.4); arch(g, x0 + w - 20, y0 + h - 6, 10, 12, '#3a2c24', 1.4);
+      for (var i = 0; i < 4; i++) FR(g, x0 + 8 + i * (w - 20) / 3, y0 + 36, 4, h - 44, '#ddd3bb', 0.8);
+      FR(g, cx - 16, y0 + 16, 32, 10, '#6f8f7a', 1.6); FE(g, cx, y0 + 14, 9, 5, '#6f8f7a', 1.4); FC(g, cx, y0 + 7, 3.5, '#6f8f7a', 1.2);
+      FE(g, cx - 13, y0 + 14, 5, 6, '#6f8f7a', 1.2); FE(g, cx + 13, y0 + 14, 5, 6, '#6f8f7a', 1.2);
+    },
+    torrebranca: function (g, x0, y0, w, h, cx) {
+      FR(g, cx - 10, y0 + h - 8, 20, 5, '#9a8f7a', 1.4);
+      g.strokeStyle = '#5d6570'; g.lineWidth = 2; g.beginPath(); g.moveTo(cx - 8, y0 + h - 8); g.lineTo(cx - 3, y0 + 16); g.moveTo(cx + 8, y0 + h - 8); g.lineTo(cx + 3, y0 + 16); g.stroke();
+      g.lineWidth = 1; for (var y = y0 + 22; y < y0 + h - 10; y += 9) { var f = (y - y0 - 16) / (h - 24), hw = 3 + 5 * f; g.beginPath(); g.moveTo(cx - hw, y); g.lineTo(cx + hw, y + 9); g.moveTo(cx + hw, y); g.lineTo(cx - hw, y + 9); g.stroke(); }
+      FR(g, cx - 7, y0 + 8, 14, 9, '#c9d6de', 1.6); FR(g, cx - 1, y0, 2, 8, OUT, 0); FC(g, cx, y0 + 1, 2, '#d6403a', 0);
+    },
+    arena: function (g, x0, y0, w, h, cx, cy) {
+      FE(g, cx, cy + 4, w / 2 - 4, h / 2 - 6, '#d8c9a5', 2); FE(g, cx, cy + 5, w / 2 - 14, h / 2 - 13, '#c9a073', 1.4);
+      for (var i = 0; i < 6; i++) { var a = Math.PI + i * Math.PI / 5; arch(g, cx + Math.cos(a) * (w / 2 - 9) - 3, cy + 4 + Math.sin(a) * (h / 2 - 9) + 4, 6, 3, '#6b5a45', 0.6); }
+    },
+    sposi: function (g, x0, y0, w, h, cx, cy) {
+      FE(g, cx, cy + 6, w / 2 - 4, 13, '#d6ccb0', 2); FE(g, cx, cy + 4, w / 2 - 10, 9, '#8fd0ee', 1.4);
+      FE(g, cx, cy - 2, 14, 6, '#e6dcc0', 1.6); FR(g, cx - 3, cy - 14, 6, 12, '#e6dcc0', 1.4);
+      g.strokeStyle = 'rgba(255,255,255,0.9)'; g.lineWidth = 1.6; [-1, 1].forEach(function (d) { g.beginPath(); g.moveTo(cx, cy - 14); g.quadraticCurveTo(cx + d * 12, cy - 24, cx + d * 18, cy + 2); g.stroke(); });
+    },
+    lavandai: function (g, x0, y0, w, h, cx, cy) {
+      FR(g, x0 + 6, cy - 4, w - 12, 18, '#d8c9a5', 1.6); FR(g, x0 + 10, cy + 2, w - 20, 8, '#8fd0ee', 1);
+      FR(g, x0 + 8, y0 + 4, 4, 22, '#7a5a3a', 0.8); FR(g, x0 + w - 12, y0 + 4, 4, 22, '#7a5a3a', 0.8);
+      FP(g, [[x0 + 2, y0 + 10], [cx, y0 + 1], [x0 + w - 2, y0 + 10]], '#c9553d', 1.6);
+      [0, 1, 2].forEach(function (k) { FR(g, x0 + 18 + k * 22, cy - 1, 12, 4, ['#ffffff', '#f2c230', '#8fc7c0'][k], 0.6); });
+    },
+    sancristoforo: function (g, x0, y0, w, h, cx) {
+      var by = y0 + h * 0.38;
+      FR(g, x0 + 8, by, w - 16, h * 0.56, ML.brick, 2.2); FP(g, [[x0 + 4, by + 2], [cx, by - 20], [x0 + w - 4, by + 2]], ML.brickD, 2);
+      FC(g, cx, by + 14, 7, '#f4ecd6', 1.4); arch(g, cx - 9, y0 + h - 6, 18, 12, '#3a2c24', 1.8);
+      FR(g, x0 + w - 22, y0 + 6, 14, by - y0, '#b8654a', 1.8); FP(g, [[x0 + w - 24, y0 + 8], [x0 + w - 15, y0], [x0 + w - 6, y0 + 8]], ML.brickD, 1.4);
+    },
+    chiatta: function (g, x0, y0, w, h, cx, cy) {
+      FP(g, [[x0 + 6, cy], [x0 + w - 6, cy], [x0 + w - 12, cy + 12], [x0 + 12, cy + 12]], '#7a5a3a', 1.8);
+      FR(g, x0 + 18, cy - 12, w - 36, 12, '#f4ecd6', 1.6); FR(g, x0 + 16, cy - 15, w - 32, 4, '#2f8f7a', 1.2);
+      for (var i = 0; i < 3; i++) FR(g, x0 + 23 + i * 18, cy - 9, 8, 6, '#8fd0ee', 0.8);
+    },
+    scala: function (g, x0, y0, w, h, cx) {
+      var by = y0 + h * 0.3;
+      FR(g, x0 + 6, by, w - 12, h * 0.64, '#efe0c0', 2.2); FR(g, x0 + 4, by - 6, w - 8, 8, '#d9c69a', 2);
+      FP(g, [[cx - 30, by - 6], [cx, by - 22], [cx + 30, by - 6]], '#e6d4ac', 1.8);
+      for (var i = 0; i < 7; i++) FR(g, x0 + 14 + i * (w - 32) / 6, by + 4, 4, h * 0.3, '#d9c69a', 1);
+      FR(g, x0 + 14, by + h * 0.34, w - 28, 12, '#b98a5a', 1.4);
+      for (i = 0; i < 5; i++) arch(g, x0 + 20 + i * (w - 44) / 4 - 5, y0 + h - 6, 10, 8, '#3a2c24', 1.2);
+    },
+    leonardo: function (g, x0, y0, w, h, cx) {
+      FR(g, cx - 10, y0 + 30, 20, 12, '#d6ccb0', 2); FR(g, cx - 7, y0 + 24, 14, 8, '#e6dcc0', 1.6);
+      FP(g, [[cx - 7, y0 + 24], [cx - 5, y0 + 10], [cx + 5, y0 + 10], [cx + 7, y0 + 24]], '#c9c1b0', 1.6);
+      FC(g, cx, y0 + 7, 4.5, '#d6ccb0', 1.4); FP(g, [[cx - 4, y0 + 9], [cx, y0 + 18], [cx + 4, y0 + 9]], '#ece6d8', 1);
+    },
+    boutique: function (g, x0, y0, w, h, cx, cy) {
+      FR(g, x0 + 4, y0 + 8, w - 8, h - 12, '#f4f1ea', 1.8);
+      for (var i = 0; i < 6; i++) FP(g, [[x0 + 4 + i * (w - 8) / 6, y0 + 8], [x0 + 4 + (i + 1) * (w - 8) / 6, y0 + 8], [x0 + 4 + (i + 0.5) * (w - 8) / 6, y0 + 18]], i % 2 ? '#25252f' : '#ffffff', 0.8);
+      FR(g, x0 + 10, y0 + 20, w - 20, h - 26, '#d6ecf6', 1.2);
+      [[0.33, '#d6403a'], [0.66, '#f2c230']].forEach(function (m) { var mx = x0 + w * m[0]; FC(g, mx, y0 + 24, 3, '#f3c9a5', 0.8); FP(g, [[mx - 5, y0 + 40], [mx - 3, y0 + 27], [mx + 3, y0 + 27], [mx + 5, y0 + 40]], m[1], 1); });
+    },
+    biglietteria: function (g, x0, y0, w, h, cx, cy) {
+      FR(g, x0 + 8, y0 + 14, w - 16, h - 18, '#e6e0d2', 1.8); FR(g, x0 + 4, y0 + 8, w - 8, 8, '#2f5f8a', 1.6);
+      for (var i = 0; i < 3; i++) FR(g, x0 + 14 + i * 24, y0 + 20, 14, 12, '#8fd0ee', 1);
+      g.fillStyle = '#fff'; g.font = '700 6px "DM Sans", sans-serif'; g.textAlign = 'center'; g.fillText('TICKETS', cx, y0 + 14.5);
+    },
+    fanstore: function (g, x0, y0, w, h, cx, cy) {
+      FR(g, x0 + 6, y0 + 12, w - 12, h - 16, '#f4f1ea', 1.8);
+      FR(g, x0 + 4, y0 + 6, (w - 8) / 2, 8, '#c8302c', 1.4); FR(g, cx, y0 + 6, (w - 8) / 2, 8, '#1f4fa0', 1.4);
+      FR(g, x0 + 14, y0 + 18, 20, 18, '#c8302c', 1.2); FR(g, x0 + 20, y0 + 18, 4, 18, '#25252f', 0); FR(g, x0 + w - 34, y0 + 18, 20, 18, '#1f4fa0', 1.2); FR(g, x0 + w - 28, y0 + 18, 4, 18, '#25252f', 0);
+    },
+    galleriaing: function (g, x0, y0, w, h, cx) {
+      FR(g, x0 + 4, y0 + 18, w - 8, h - 22, '#efe0c0', 2.2); FR(g, x0 + 2, y0 + 12, w - 4, 8, '#d9c69a', 2);
+      arch(g, cx - 18, y0 + h - 4, 36, 30, '#bfe3f2', 2); g.strokeStyle = 'rgba(70,90,110,0.6)'; g.lineWidth = 1; for (var i = 1; i < 4; i++) { g.beginPath(); g.moveTo(cx - 18 + i * 9, y0 + h - 4); g.lineTo(cx - 18 + i * 9, y0 + h - 50); g.stroke(); }
+      for (i = 0; i < 2; i++) { FR(g, x0 + 12 + i * (w - 30), y0 + 26, 6, h - 30, '#d9c69a', 1); }
+      FR(g, cx - 24, y0 + 4, 48, 9, '#e6d4ac', 1.6);
+    },
+    arengario: function (g, x0, y0, w, h, cx) {
+      FR(g, x0 + 6, y0 + 14, w - 12, h - 18, '#e9e2d2', 2.2); FR(g, x0 + 4, y0 + 8, w - 8, 8, '#cfc6b2', 1.8);
+      for (var i = 0; i < 4; i++) arch(g, x0 + 12 + i * (w - 30) / 3, y0 + h - 6, 10, 18, '#5a4a3e', 1.2);
+      for (i = 0; i < 4; i++) FR(g, x0 + 13 + i * (w - 30) / 3, y0 + 22, 8, 10, '#5a4a3e', 0.8);
+    },
+    /* obstacles */
+    monopattino: function (g, x0, y0, w, h, cx, cy) {
+      FE(g, cx, y0 + 42, 17, 4, 'rgba(0,0,0,0.18)', 0);
+      [[-8, 0], [6, 5]].forEach(function (o) { var bx = cx + o[0], by = cy + o[1];
+        FC(g, bx - 9, by + 12, 3.6, '#25252f', 1); FC(g, bx + 9, by + 12, 3.6, '#25252f', 1); FR(g, bx - 9, by + 9, 18, 3, '#2fb8a0', 1);
+        FR(g, bx + 7, by - 12, 2.4, 22, '#2fb8a0', 0.8); FR(g, bx + 3, by - 13, 9, 2.4, '#25252f', 0); });
+    },
+    bici: function (g, x0, y0, w, h, cx, cy) {
+      FE(g, cx, y0 + 42, 18, 4, 'rgba(0,0,0,0.18)', 0);
+      g.strokeStyle = OUT; g.lineWidth = 1.6; [cx - 11, cx + 11].forEach(function (x) { g.beginPath(); g.arc(x, cy + 8, 8, 0, TAU); g.stroke(); });
+      g.strokeStyle = '#d6403a'; g.lineWidth = 2.4; g.beginPath(); g.moveTo(cx - 11, cy + 8); g.lineTo(cx - 2, cy - 4); g.lineTo(cx + 8, cy - 4); g.lineTo(cx + 11, cy + 8); g.moveTo(cx - 2, cy - 4); g.lineTo(cx + 1, cy + 8); g.lineTo(cx + 8, cy - 4); g.stroke();
+      FR(g, cx - 5, cy - 8, 7, 3, OUT, 0); FR(g, cx + 6, cy - 10, 6, 2.4, OUT, 0);
+    },
+    tavolini: function (g, x0, y0, w, h, cx, cy) {
+      FE(g, cx, y0 + 42, w * 0.4, 4, 'rgba(0,0,0,0.18)', 0);
+      [x0 + w * 0.3, x0 + w * 0.7].forEach(function (tx) {
+        FR(g, tx - 1.5, cy - 2, 3, 16, OUT, 0); FE(g, tx, cy - 2, 11, 4, '#f4f1ea', 1.4);
+        FC(g, tx - 2, cy - 7, 3, '#e0603a', 0.8); FR(g, tx + 3, cy - 10, 3, 7, '#f2c230', 0.6);
+        FR(g, tx - 16, cy + 2, 6, 12, '#3f6f8f', 1); FR(g, tx + 10, cy + 2, 6, 12, '#3f6f8f', 1);
+      });
+      FR(g, cx - 1.5, y0 + 2, 3, 22, OUT, 0); FP(g, [[cx - 20, y0 + 10], [cx, y0 + 2], [cx + 20, y0 + 10]], '#2f8f7a', 1.6);
+    },
+    transenne: function (g, x0, y0, w, h, cx, cy) {
+      FE(g, cx, y0 + 42, w * 0.42, 4, 'rgba(0,0,0,0.18)', 0);
+      for (var k = 0; k < 2; k++) { var bx = x0 + 8 + k * (w - 16) / 2;
+        FR(g, bx, cy - 6, (w - 20) / 2, 16, 'rgba(255,255,255,0)', 1.6); g.strokeStyle = '#a9b0ba'; g.lineWidth = 1.4;
+        for (var i = 1; i < 7; i++) { g.beginPath(); g.moveTo(bx + i * (w - 20) / 14, cy - 6); g.lineTo(bx + i * (w - 20) / 14, cy + 10); g.stroke(); }
+        FR(g, bx + 2, cy + 10, 3, 6, OUT, 0); FR(g, bx + (w - 20) / 2 - 5, cy + 10, 3, 6, OUT, 0); }
+      FR(g, cx - 14, y0 + 6, 28, 10, '#25252f', 1.2); g.fillStyle = '#fff'; g.font = '700 6px "DM Sans", sans-serif'; g.textAlign = 'center'; g.fillText('FASHION', cx, y0 + 13.5);
+    },
+    cartellone: function (g, x0, y0, w, h, cx, cy) {
+      FR(g, cx - 2, y0 + 26, 4, 16, OUT, 0); FE(g, cx, y0 + 42, 12, 3, 'rgba(0,0,0,0.18)', 0);
+      FR(g, x0 + 4, y0 + 4, w - 8, 24, '#f4f1ea', 1.8); FR(g, x0 + 7, y0 + 7, w - 14, 18, '#e7a6b8', 0);
+      FC(g, x0 + 15, y0 + 14, 3, '#f3c9a5', 0.6); FP(g, [[x0 + 11, y0 + 25], [x0 + 13, y0 + 17], [x0 + 17, y0 + 17], [x0 + 19, y0 + 25]], '#25252f', 0);
+      g.fillStyle = '#25252f'; g.font = '700 6px "DM Sans", sans-serif'; g.textAlign = 'center'; g.fillText('SALE', cx + 4, y0 + 19);
+    },
+    scatoloni: function (g, x0, y0, w, h, cx, cy) {
+      FE(g, cx, y0 + 42, 17, 4, 'rgba(0,0,0,0.18)', 0);
+      FR(g, cx - 16, cy + 2, 18, 15, '#c9945a', 1.6); FR(g, cx, cy, 15, 17, '#d6a46a', 1.6); FR(g, cx - 9, cy - 12, 16, 14, '#e0b47a', 1.6);
+      g.strokeStyle = 'rgba(90,60,30,0.6)'; g.lineWidth = 1; g.beginPath(); g.moveTo(cx - 1, cy - 12); g.lineTo(cx - 1, cy + 2); g.stroke();
+    }
+  };
+  Object.keys(MLN).forEach(function (k) { MONDRAW[k] = MLN[k]; });
+
 
   /* ---------- Disegno dinamico ---------- */
   function rnd01(seed, k) { var v = Math.sin(seed * 12.9898 + k * 78.233) * 43758.5453; return v - Math.floor(v); }
@@ -4831,7 +5318,7 @@ var SND = (function () {
     var occ = {}, seed = 11 + st.cols * 7 + st.rows, P = st.paths ? st.paths() : [st.path()], placed = [];
     function rnd() { seed = (seed * 16807) % 2147483647; return seed / 2147483647; }
     function mark(l) { (l || []).forEach(function (b) { for (var a = 0; a < b.w; a++) for (var d = 0; d < b.h; d++) occ[(b.c + a) + ',' + (b.r + d)] = true; }); }
-    mark(st.monuments); mark(st.blocks); mark(st.goals); mark(st.starts);
+    mark(st.monuments); mark(st.blocks); mark(st.goals); mark(st.starts); mark(st.avoid);
     st.trees.forEach(function (t) { occ[t[0] + ',' + t[1]] = true; }); st.deco.forEach(function (t) { occ[t[0] + ',' + t[1]] = true; });
     function dpath(x, y) {
       var best = 1e9;
@@ -4855,6 +5342,17 @@ var SND = (function () {
       }
     });
   }
+  OBSDEF.monopattino = { name: 'Parked e-scooters', w: 1, h: 1, hp: 80, reward: 18 };
+  OBSDEF.bici = { name: 'Abandoned bike', w: 1, h: 1, hp: 70, reward: 14 };
+  OBSDEF.tavolini = { name: 'Aperitivo tables', w: 2, h: 1, hp: 100, reward: 18 };
+  OBSDEF.transenne = { name: 'Fashion show barriers', w: 2, h: 1, hp: 110, reward: 20 };
+  OBSDEF.cartellone = { name: 'Billboard', w: 2, h: 1, hp: 90, reward: 16 };
+  OBSDEF.scatoloni = { name: 'Pile of boxes', w: 1, h: 1, hp: 60, reward: 12, trash: true };
+  OBSLIST.castello = ['monopattino', 'bidone', 'bici', 'sacchi', 'monopattino'];
+  OBSLIST.navigli = ['bici', 'tavolini', 'bidone', 'cantiere', 'tavolini'];
+  OBSLIST.corso = ['transenne', 'cartellone', 'scatoloni', 'monopattino', 'cartellone'];
+  OBSLIST.sansiro = ['palloni', 'coni', 'monopattino', 'bidone', 'cartellone', 'scatoloni'];
+  OBSLIST.duomo = ['transenne', 'scatoloni', 'monopattino', 'bici', 'sacchi', 'bidone'];
   STAGES.forEach(function (st) { autoObs(st, OBSLIST[st.id] || []); });
   STAGES.forEach(function (st) { st.gate = '#4aa3d6'; });
   function padStage(st, top, bot, trees, obs) {

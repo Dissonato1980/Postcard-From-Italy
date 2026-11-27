@@ -342,7 +342,7 @@ select { font: 700 1.7cqw var(--font-display); color: var(--ink); background: #f
       <button class="tile" data-go="cards"><svg viewBox="0 0 24 24" fill="none" stroke="#3b2d1d" stroke-width="1.7" stroke-linejoin="round" stroke-linecap="round"><rect x="3.5" y="5" width="17" height="14" rx="1.5" fill="#fff"/><rect x="5.5" y="7" width="7" height="10" fill="#f2c14e"/><path d="M14.5 8h4M14.5 11h4M14.5 14h2.5"/></svg>Collection</button>
     </div>
   </div>
-  <div class="ver">v75 · test build</div>
+  <div class="ver">v76 · test build</div>
 
   <!-- ALBUM -->
   <section class="panel" id="p-album">
@@ -419,7 +419,7 @@ select { font: 700 1.7cqw var(--font-display); color: var(--ink); background: #f
 
   <div class="modal" id="m-card"><div class="cbox"><img id="mcImg" alt=""><div class="cbt"><button class="pr" id="mcSave">Save postcard</button><button id="mcFmt">Horizontal version</button><button data-close>Close</button></div></div></div>
   <div class="modal" id="m-lock"><div class="note"><h3>Premium postcard</h3><p id="lockTxt"></p><div class="bt"><button data-close>Not now</button><button class="pr" id="lockGo">See Premium</button></div></div></div>
-  <div class="modal" id="m-info"><div class="note"><h3>Postcard from Italy</h3><p>City Defense · test build v75<br>Made with love for Italian cities.<br><br><u>Privacy policy</u> · <u>Terms of use</u></p><div class="bt"><button class="pr" data-close>Close</button></div></div></div>
+  <div class="modal" id="m-info"><div class="note"><h3>Postcard from Italy</h3><p>City Defense · test build v76<br>Made with love for Italian cities.<br><br><u>Privacy policy</u> · <u>Terms of use</u></p><div class="bt"><button class="pr" data-close>Close</button></div></div></div>
   <div class="modal" id="m-ad"><div class="adbox"><span class="lb">Sponsored · demo video</span><div class="bigp">Your ad plays here</div><div class="bar"><i id="adBar"></i></div><button id="adCollect" disabled>Watching… 3</button></div></div>
   <div class="toast" id="toast"></div>
 </div>
@@ -487,8 +487,7 @@ select { font: 700 1.7cqw var(--font-display); color: var(--ink); background: #f
   var STG = {
     roma: [['circo', 'Circo Massimo', 'Easy', 'e'], ['centro', 'Historic Center', 'Medium', 'm'], ['fori', 'Fori Imperiali', 'Hard', 'h'], ['colosseo', 'Colosseo', 'Very hard', 'x']],
     napoli: [['mare', 'Lungomare', 'Easy', 'e'], ['spacca', 'Spaccanapoli', 'Medium', 'm'], ['plebiscito', 'Piazza del Plebiscito', 'Hard', 'h'], ['vesuvio', 'Vesuvio', 'Very hard', 'x'], ['stadio', 'Stadio', 'Final', 'x']],
-    /* TEST: Milan runs on the Naples maps until its own stages are built (tower health system) */
-    milano: [['mare', 'Test 1 · Lungomare', 'Easy', 'e'], ['spacca', 'Test 2 · Spaccanapoli', 'Medium', 'm'], ['plebiscito', 'Test 3 · Plebiscito', 'Hard', 'h'], ['vesuvio', 'Test 4 · Vesuvio', 'Very hard', 'x'], ['stadio', 'Test 5 · Stadio', 'Final', 'x']]
+    milano: [['castello', 'Castello Sforzesco', 'Easy', 'e'], ['navigli', 'Navigli', 'Medium', 'm'], ['corso', 'Galleria and Corso', 'Hard', 'h'], ['sansiro', 'San Siro', 'Very hard', 'x'], ['duomo', 'Duomo', 'Final', 'x']]
   };
   var PLAYABLE = { roma: ['game.html', 0], napoli: ['napoli.html', 1], milano: ['milano.html', 4] };
   var WINS = {};
