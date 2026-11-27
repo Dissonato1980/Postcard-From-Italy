@@ -88,15 +88,15 @@ button:focus-visible { outline: 3px solid #fff; outline-offset: 2px; }
 .rnd { width: 5.2cqw; height: 5.2cqw; border-radius: 50%; display: grid; place-items: center; font: 800 2.6cqw var(--font-display); color: var(--ink); background: linear-gradient(#f8f1de, #e6d9b8); border: .35cqw solid var(--line); box-shadow: 0 .25cqw 0 rgba(0,0,0,.25); }
 .rnd svg { width: 3cqw; height: 3cqw; }
 
-.menu { position: absolute; right: 3.4cqw; bottom: 4.4cqw; width: 31cqw; display: flex; flex-direction: column; gap: 1.3cqw; z-index: 3; }
+.menu { position: absolute; right: 3.4cqw; bottom: 4.4cqw; width: 38cqw; display: flex; flex-direction: column; gap: 1.3cqw; z-index: 3; }
 .pill { align-self: stretch; text-align: center; font: 800 1.7cqw var(--font-display); letter-spacing: .06em; text-transform: uppercase; color: #5a3b00; background: linear-gradient(#ffe08a, #f2c14e); border: .3cqw solid #8a5d0c; border-radius: 5cqw; padding: .7cqw 0; box-shadow: 0 .25cqw 0 rgba(0,0,0,.3); }
 .pill:active { transform: translateY(.2cqw); }
 .play { display: flex; align-items: center; justify-content: center; gap: 1.6cqw; height: 11cqw; font: 400 6cqw var(--font-comic); letter-spacing: .06em; color: #fff; background: linear-gradient(#ee5a4f, var(--red)); border: .45cqw solid #7b1c18; border-radius: 1.4cqw; box-shadow: inset 0 .3cqw 0 rgba(255,255,255,.35), 0 .6cqw 0 #7b1c18, 0 1.2cqw 2cqw rgba(0,0,0,.3); text-shadow: 0 .3cqw 0 #7b1c18; }
 .play svg { width: 5cqw; height: 5cqw; }
 .play:active { transform: translateY(.5cqw); box-shadow: inset 0 .3cqw 0 rgba(255,255,255,.35), 0 .1cqw 0 #7b1c18; }
-.tiles { display: grid; grid-template-columns: repeat(3, 1fr); gap: 1.3cqw; }
-.tile { display: flex; flex-direction: column; align-items: center; justify-content: center; gap: .3cqw; height: 10.4cqw; font: 800 1.55cqw var(--font-display); letter-spacing: .06em; text-transform: uppercase; color: var(--ink); background: linear-gradient(#f8f1de, #e6d9b8); border: .35cqw solid var(--line); border-radius: 1.2cqw; box-shadow: inset 0 0 0 .15cqw rgba(255,255,255,.7), 0 .45cqw 0 rgba(0,0,0,.3); }
-.tile svg { width: 5cqw; height: 5cqw; }
+.tiles { display: grid; grid-template-columns: repeat(4, 1fr); gap: 1.3cqw; }
+.tile { display: flex; flex-direction: column; align-items: center; justify-content: center; gap: .3cqw; height: 10.4cqw; font: 800 1.3cqw var(--font-display); letter-spacing: .03em; min-width: 0; text-transform: uppercase; color: var(--ink); background: linear-gradient(#f8f1de, #e6d9b8); border: .35cqw solid var(--line); border-radius: 1.2cqw; box-shadow: inset 0 0 0 .15cqw rgba(255,255,255,.7), 0 .45cqw 0 rgba(0,0,0,.3); }
+.tile svg { width: 4.6cqw; height: 4.6cqw; }
 .tile:active { transform: translateY(.4cqw); }
 .ver { position: absolute; left: 3cqw; bottom: 1.2cqw; z-index: 3; font-size: 1.2cqw; color: rgba(59,45,29,.7); }
 
@@ -120,6 +120,21 @@ button:focus-visible { outline: 3px solid #fff; outline-offset: 2px; }
 .sub { font-size: 1.7cqw; color: var(--muted); margin: 0 0 1.2cqw; }
 .sub b { color: var(--ink); }
 
+.pcs { flex: 1; min-height: 0; display: flex; align-items: center; justify-content: center; gap: 4cqw; padding: .8cqw; }
+.pc { height: 100%; aspect-ratio: 2 / 3; background: none; border: 0; padding: 0; position: relative; filter: drop-shadow(0 .5cqw 1cqw rgba(60,40,10,.35)); transition: transform .15s; }
+.pc img { width: 100%; height: 100%; object-fit: contain; display: block; }
+.pc:nth-child(odd) { transform: rotate(-1.5deg); } .pc:nth-child(even) { transform: rotate(1.2deg); } .pc:hover { transform: scale(1.03); }
+.pc.empty { display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; gap: .6cqw; border: .3cqw dashed var(--line); border-radius: .8cqw; color: var(--ink); font: 700 1.5cqw var(--font-display); opacity: .65; filter: none; padding: 1cqw; }
+.pc.empty small { font: 500 1.2cqw var(--font-body, sans-serif); }
+#m-card { background: rgba(30,20,10,.88); }
+#m-card .cbox { display: flex; gap: 3cqw; align-items: center; }
+#m-card .cbox.land { flex-direction: column; }
+#m-card .cbox.land img { height: 36cqw; width: 54cqw; aspect-ratio: 3 / 2; }
+#m-card .cbox.land .cbt { flex-direction: row; }
+#m-card .cbox img { height: 49cqw; width: 32.6cqw; aspect-ratio: 2 / 3; object-fit: contain; filter: drop-shadow(0 .6cqw 1.4cqw rgba(0,0,0,.5)); }
+#m-card .cbt { display: flex; flex-direction: column; gap: 1.4cqw; }
+#m-card .cbt button { font: 800 1.8cqw var(--font-display); padding: 1cqw 2.6cqw; border-radius: .9cqw; border: .3cqw solid var(--line); background: linear-gradient(#f8f1de, #e6d9b8); box-shadow: 0 .3cqw 0 rgba(0,0,0,.25); color: var(--ink); }
+#m-card .cbt button.pr { color: #fff; background: linear-gradient(#ee5a4f, var(--red)); border-color: #7b1c18; box-shadow: 0 .3cqw 0 #7b1c18; }
 /* Album of cities */
 .album { flex: 1; min-height: 0; display: grid; grid-template-columns: repeat(5, 1fr); grid-template-rows: repeat(2, 1fr); gap: 2cqw 2.2cqw; padding: .8cqw .6cqw; }
 .card { position: relative; display: flex; flex-direction: column; background: #fff; border: .25cqw solid var(--line); border-radius: .5cqw; padding: .8cqw .8cqw .6cqw; box-shadow: 0 .5cqw 1.2cqw rgba(60,40,10,.28); transition: transform .15s; min-height: 0; }
@@ -324,6 +339,7 @@ select { font: 700 1.7cqw var(--font-display); color: var(--ink); background: #f
       <button class="tile" data-go="towers"><svg viewBox="0 0 40 40"><use href="#t-gl"/></svg>Towers</button>
       <button class="tile" data-go="store"><svg viewBox="0 0 24 24" fill="none" stroke="#3b2d1d" stroke-width="1.7" stroke-linejoin="round" stroke-linecap="round"><path d="M3.5 9.5 5 4.5h14l1.5 5"/><path d="M3.5 9.5c0 1.8 1.4 3 3 3s2.7-1.2 2.7-3c0 1.800 1.200 3 2.800 3s2.800-1.200 2.800-3c0 1.800 1.200 3 2.700 3s3-1.200 3-3"/><path d="M5 12.500V20h14v-7.500"/><path d="M10 20v-4h4v4"/></svg>Store</button>
       <button class="tile" data-go="settings"><svg viewBox="0 0 24 24" fill="none" stroke="#3b2d1d" stroke-width="1.7" stroke-linecap="round"><path d="M4 7h9M17 7h3M4 17h3M11 17h9M4 12h16"/><circle cx="15" cy="7" r="2" fill="#f2c14e"/><circle cx="9" cy="17" r="2" fill="#f2c14e"/><circle cx="7" cy="12" r="2" fill="#f2c14e"/></svg>Settings</button>
+      <button class="tile" data-go="cards"><svg viewBox="0 0 24 24" fill="none" stroke="#3b2d1d" stroke-width="1.7" stroke-linejoin="round" stroke-linecap="round"><rect x="3.5" y="5" width="17" height="14" rx="1.5" fill="#fff"/><rect x="5.5" y="7" width="7" height="10" fill="#f2c14e"/><path d="M14.5 8h4M14.5 11h4M14.5 14h2.5"/></svg>Collection</button>
     </div>
   </div>
   <div class="ver">v0.2 · test build</div>
@@ -344,6 +360,12 @@ select { font: 700 1.7cqw var(--font-display); color: var(--ink); background: #f
   <section class="panel" id="p-towers">
     <div class="ph"><button class="back" data-back><svg viewBox="0 0 24 24" fill="none" stroke="#3b2d1d" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M15 5l-7 7 7 7"/></svg>Back</button><h2>Towers</h2><span class="sp"></span><div class="plq"><svg viewBox="0 0 26 26"><rect x="2" y="2.5" width="22" height="21" rx="1" fill="#ffffff" stroke="#2d86b8" stroke-width="2.4" stroke-dasharray="2.2 1.7"/><rect x="5.2" y="5.7" width="15.6" height="14.6" fill="#5fb4e0" stroke="#24668f" stroke-width="1"/><path d="M5.2 20.3l5-6.2 2.6 3 2.8-4.4 5.2 7.6z" fill="#e9f4fb"/><circle cx="17.6" cy="9.6" r="1.9" fill="#ffd45a"/></svg><span><small>Stamps</small><b class="crv">150</b></span></div></div>
     <div class="pb"><div class="tabs" id="tabs"></div><p class="sub" id="twSub"></p><div class="tw" id="tw"></div></div>
+  </section>
+
+  <!-- COLLECTION -->
+  <section class="panel" id="p-cards">
+    <div class="ph"><button class="back" data-back><svg viewBox="0 0 24 24" fill="none" stroke="#3b2d1d" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M15 5l-7 7 7 7"/></svg>Back</button><h2>Postcard collection</h2><span class="sp"></span></div>
+    <div class="pb"><p class="sub">Finish the last stage of a city to collect its postcard.</p><div class="pcs" id="pcs"></div></div>
   </section>
 
   <!-- STORE -->
@@ -395,6 +417,7 @@ select { font: 700 1.7cqw var(--font-display); color: var(--ink); background: #f
     </div></div>
   </section>
 
+  <div class="modal" id="m-card"><div class="cbox"><img id="mcImg" alt=""><div class="cbt"><button class="pr" id="mcSave">Save postcard</button><button id="mcFmt">Horizontal version</button><button data-close>Close</button></div></div></div>
   <div class="modal" id="m-lock"><div class="note"><h3>Premium postcard</h3><p id="lockTxt"></p><div class="bt"><button data-close>Not now</button><button class="pr" id="lockGo">See Premium</button></div></div></div>
   <div class="modal" id="m-info"><div class="note"><h3>Postcard from Italy</h3><p>City Defense · test build 0.2<br>Made with love for Italian cities.<br><br><u>Privacy policy</u> · <u>Terms of use</u></p><div class="bt"><button class="pr" data-close>Close</button></div></div></div>
   <div class="modal" id="m-ad"><div class="adbox"><span class="lb">Sponsored · demo video</span><div class="bigp">Your ad plays here</div><div class="bar"><i id="adBar"></i></div><button id="adCollect" disabled>Watching… 3</button></div></div>
@@ -478,6 +501,22 @@ select { font: 700 1.7cqw var(--font-display); color: var(--ink); background: #f
 
   function stars(n) { return '<span class="stars">' + '★'.repeat(n) + '<span style="opacity:.3">' + '★'.repeat(3 - n) + '</span></span>'; }
 
+  function renderCards() {
+    var cs = {}; try { cs = JSON.parse(localStorage.getItem('pfi-cards') || '{}') || {}; } catch (e) {}
+    $('#pcs').innerHTML = [['roma', 'Rome'], ['napoli', 'Naples']].map(function (c) {
+      var d = cs[c[0]];
+      return d ? '<button class="pc" data-card="' + c[0] + '"><img alt="' + c[1] + '" src="' + d.img + '"></button>' : '<div class="pc empty">' + c[1] + '<small>Complete the last stage to unlock</small></div>';
+    }).join('');
+  }
+  var mcCur = null, mcLand = false;
+  function mcShow() { var d = (JSON.parse(localStorage.getItem('pfi-cards') || '{}') || {})[mcCur]; if (!d) return; var l = mcLand && d.imgL; $('#mcImg').src = l ? d.imgL : d.img; $('.cbox', $('#m-card')).classList.toggle('land', !!l); $('#mcFmt').textContent = PFI_T(l ? 'Vertical version' : 'Horizontal version'); }
+  function PFI_T(t) { try { return window.PFI_LANG ? window.PFI_LANG.tr(t) : t; } catch (e) { return t; } }
+  function openCard(k) { try { var d = (JSON.parse(localStorage.getItem('pfi-cards') || '{}') || {})[k]; if (!d) return; mcCur = k; mcLand = false; mcShow(); modal('card', true); } catch (e) {} }
+  function saveCard() {
+    var im = $('#mcImg'), a = document.createElement('a'); a.download = 'postcard-' + mcCur + (mcLand ? '-horizontal' : '-vertical') + '.jpg'; a.href = im.src;
+    try { if (navigator.canShare) { fetch(im.src).then(function (r) { return r.blob(); }).then(function (b) { var f = new File([b], a.download, { type: b.type || 'image/jpeg' }); if (navigator.canShare({ files: [f] })) navigator.share({ files: [f] }).catch(function () {}); else a.click(); }); return; } } catch (e) {}
+    a.click();
+  }
   function renderAlbum() {
     $('#album').innerHTML = CITIES.map(function (c, i) {
       var open = c[2] || premium;
@@ -540,7 +579,7 @@ select { font: 700 1.7cqw var(--font-display); color: var(--ink); background: #f
     if (name) { $('#p-' + name).classList.add('on'); }
   }
   function go(name) {
-    if (name === 'album') renderAlbum(); if (name === 'towers') renderTowers();
+    if (name === 'album') renderAlbum(); if (name === 'towers') renderTowers(); if (name === 'cards') renderCards();
     stack.push(name); show(name);
   }
   function back() { stack.pop(); show(stack[stack.length - 1] || null); }
@@ -552,6 +591,9 @@ select { font: 700 1.7cqw var(--font-display); color: var(--ink); background: #f
     if (t.dataset.go) return go(t.dataset.go);
     if (t.hasAttribute('data-back')) return back();
     if (t.dataset.modal) return modal(t.dataset.modal, true);
+    if (t.dataset.card) return openCard(t.dataset.card);
+    if (t.id === 'mcSave') return saveCard();
+    if (t.id === 'mcFmt') { mcLand = !mcLand; return mcShow(); }
     if (t.hasAttribute('data-close')) return $$('.modal').forEach(function (m) { m.classList.remove('on'); });
     if (t.dataset.city != null) {
       var c = CITIES[+t.dataset.city];
