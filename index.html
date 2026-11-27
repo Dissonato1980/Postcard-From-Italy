@@ -342,7 +342,7 @@ select { font: 700 1.7cqw var(--font-display); color: var(--ink); background: #f
       <button class="tile" data-go="cards"><svg viewBox="0 0 24 24" fill="none" stroke="#3b2d1d" stroke-width="1.7" stroke-linejoin="round" stroke-linecap="round"><rect x="3.5" y="5" width="17" height="14" rx="1.5" fill="#fff"/><rect x="5.5" y="7" width="7" height="10" fill="#f2c14e"/><path d="M14.5 8h4M14.5 11h4M14.5 14h2.5"/></svg>Collection</button>
     </div>
   </div>
-  <div class="ver">v76 · test build</div>
+  <div class="ver">v75 · test build</div>
 
   <!-- ALBUM -->
   <section class="panel" id="p-album">
@@ -419,7 +419,7 @@ select { font: 700 1.7cqw var(--font-display); color: var(--ink); background: #f
 
   <div class="modal" id="m-card"><div class="cbox"><img id="mcImg" alt=""><div class="cbt"><button class="pr" id="mcSave">Save postcard</button><button id="mcFmt">Horizontal version</button><button data-close>Close</button></div></div></div>
   <div class="modal" id="m-lock"><div class="note"><h3>Premium postcard</h3><p id="lockTxt"></p><div class="bt"><button data-close>Not now</button><button class="pr" id="lockGo">See Premium</button></div></div></div>
-  <div class="modal" id="m-info"><div class="note"><h3>Postcard from Italy</h3><p>City Defense · test build v76<br>Made with love for Italian cities.<br><br><u>Privacy policy</u> · <u>Terms of use</u></p><div class="bt"><button class="pr" data-close>Close</button></div></div></div>
+  <div class="modal" id="m-info"><div class="note"><h3>Postcard from Italy</h3><p>City Defense · test build v75<br>Made with love for Italian cities.<br><br><u>Privacy policy</u> · <u>Terms of use</u></p><div class="bt"><button class="pr" data-close>Close</button></div></div></div>
   <div class="modal" id="m-ad"><div class="adbox"><span class="lb">Sponsored · demo video</span><div class="bigp">Your ad plays here</div><div class="bar"><i id="adBar"></i></div><button id="adCollect" disabled>Watching… 3</button></div></div>
   <div class="toast" id="toast"></div>
 </div>
@@ -477,17 +477,22 @@ select { font: 700 1.7cqw var(--font-display); color: var(--ink); background: #f
   SA.plebiscito = ['#bfe3f2', '<rect y="30" width="100" height="34" fill="#efe4c6"/><g fill="#f4ecd6" stroke="#6b5a45" stroke-width="1"><rect x="10" y="30" width="80" height="12"/><path d="M38 30v-10h24v10z"/></g><path d="M40 20q10-14 20 0z" fill="#6f9f86" stroke="#6b5a45" stroke-width="1"/><path d="M14 36h72" stroke="#c4b088" stroke-width="1" stroke-dasharray="2 2"/><rect x="4" y="46" width="20" height="12" fill="#e3a07c" stroke="#6b5a45" stroke-width="1"/>'];
   SA.vesuvio = ['#cfe8f3', '<rect y="46" width="100" height="18" fill="#d3bf96"/><path d="M6 50L38 16l8 4 8-6 8 4 30 32z" fill="#8a6a4f" stroke="#6b5a45" stroke-width="1"/><path d="M38 17q4-4 14-2l-4 3z" fill="#e8602c"/><circle cx="52" cy="8" r="5" fill="#bdb6ae" opacity=".9"/><circle cx="58" cy="3" r="4" fill="#d3cdc5" opacity=".9"/><path d="M50 20q4 14-2 28" fill="none" stroke="#e8602c" stroke-width="1.600"/>'];
   SA.stadio = ['#bfe3f2', '<rect y="44" width="100" height="20" fill="#dcd6c4"/><ellipse cx="50" cy="40" rx="40" ry="20" fill="#6fb8e6" stroke="#6b5a45" stroke-width="1"/><ellipse cx="50" cy="40" rx="30" ry="14" fill="#e9e4d2" stroke="#6b5a45" stroke-width=".8"/><ellipse cx="50" cy="40" rx="22" ry="9" fill="#4f9a58" stroke="#6b5a45" stroke-width=".8"/><path d="M50 31v18" stroke="#fff" stroke-width=".8"/>'];
+  SA.castello = ['#cfe8f3', '<rect y="44" width="100" height="20" fill="#cfe3a8"/><rect x="16" y="22" width="68" height="26" fill="#c4583e" stroke="#6b5a45" stroke-width="1"/><rect x="10" y="14" width="14" height="34" fill="#b34a34" stroke="#6b5a45" stroke-width="1"/><rect x="76" y="14" width="14" height="34" fill="#b34a34" stroke="#6b5a45" stroke-width="1"/><rect x="44" y="8" width="12" height="40" fill="#cf6648" stroke="#6b5a45" stroke-width="1"/><path d="M42 8l8-8 8 8z" fill="#6b8a7a" stroke="#6b5a45" stroke-width=".8"/><path d="M44 48v-8a6 6 0 0 1 12 0v8z" fill="#3a2c24"/>'];
+  SA.navigli = ['#fdeacb', '<rect y="0" width="100" height="64" fill="#e6d6b4"/><rect x="38" y="0" width="24" height="64" fill="#7fbad6"/><rect x="34" y="26" width="32" height="8" fill="#cdbb98" stroke="#6b5a45" stroke-width=".8"/><g stroke="#6b5a45" stroke-width=".8"><rect x="2" y="4" width="22" height="16" fill="#d98f6f"/><rect x="2" y="26" width="22" height="16" fill="#efd9a0"/><rect x="76" y="4" width="22" height="16" fill="#e7b6a0"/><rect x="76" y="26" width="22" height="16" fill="#d9b886"/></g><circle cx="30" cy="52" r="2" fill="#ff9a5a"/><circle cx="70" cy="52" r="2" fill="#ffd23a"/>'];
+  SA.galleria = ['#cfe8f3', '<rect y="0" width="100" height="64" fill="#e8dcc0"/><rect x="26" y="22" width="48" height="20" fill="#aad4ee" stroke="#6b5a45" stroke-width="1"/><path d="M50 32m-12 0l6-10h12l6 10l-6 10h-12z" fill="#c9e6f6" stroke="#6b5a45" stroke-width="1"/><circle cx="50" cy="32" r="3" fill="#f3d27a"/><rect x="2" y="2" width="18" height="40" fill="#d98f6f" stroke="#6b5a45" stroke-width=".8"/><rect x="80" y="2" width="18" height="40" fill="#efd9a0" stroke="#6b5a45" stroke-width=".8"/>'];
+  SA.sansiro = ['#cfd6dd', '<rect y="0" width="100" height="64" fill="#d9dccb"/><rect x="14" y="6" width="72" height="52" rx="10" fill="#bfc4cf" stroke="#6b5a45" stroke-width="1"/><rect x="24" y="14" width="52" height="36" rx="6" fill="#4f9a58" stroke="#fff" stroke-width="1"/><circle cx="14" cy="8" r="5" fill="#e8e8f0" stroke="#c0261f" stroke-width="1.4"/><circle cx="86" cy="8" r="5" fill="#e8e8f0" stroke="#c0261f" stroke-width="1.4"/><circle cx="14" cy="56" r="5" fill="#e8e8f0" stroke="#c0261f" stroke-width="1.4"/><circle cx="86" cy="56" r="5" fill="#e8e8f0" stroke="#c0261f" stroke-width="1.4"/>'];
+  SA.duomo = ['#d9e5ee', '<rect y="46" width="100" height="18" fill="#efe5cc"/><path d="M14 50V30L50 12l36 18v20z" fill="#f1ece0" stroke="#6b5a45" stroke-width="1"/><g fill="#e4dccb" stroke="#6b5a45" stroke-width=".6"><rect x="22" y="18" width="3" height="32"/><rect x="34" y="12" width="3" height="38"/><rect x="48.500" y="6" width="3" height="44"/><rect x="63" y="12" width="3" height="38"/><rect x="75" y="18" width="3" height="32"/></g><circle cx="50" cy="5" r="2.200" fill="#e8b84a"/>'];
   function art(id, stage) {
     if (stage && SA[stage]) return '<svg viewBox="0 0 100 64" preserveAspectRatio="xMidYMid slice"><rect width="100" height="64" fill="' + SA[stage][0] + '"/>' + SA[stage][1] + '</svg>'; var a = ART[id]; return '<svg viewBox="0 0 100 64" preserveAspectRatio="xMidYMid slice"><rect width="100" height="64" fill="' + a[0] + '"/>' + a[1]() + '</svg>'; }
 
   var CITIES = [
-    ['roma', 'Rome', 1], ['napoli', 'Naples', 1], ['genova', 'Genoa', 1], ['palermo', 'Palermo', 1], ['milano', 'Milan', 0],
+    ['roma', 'Rome', 1], ['napoli', 'Naples', 1], ['genova', 'Genoa', 1], ['palermo', 'Palermo', 1], ['milano', 'Milan', 1],
     ['torino', 'Turin', 0], ['bari', 'Bari', 0], ['firenze', 'Florence', 0], ['venezia', 'Venice', 0], ['bologna', 'Bologna', 0]
   ];
   var STG = {
     roma: [['circo', 'Circo Massimo', 'Easy', 'e'], ['centro', 'Historic Center', 'Medium', 'm'], ['fori', 'Fori Imperiali', 'Hard', 'h'], ['colosseo', 'Colosseo', 'Very hard', 'x']],
     napoli: [['mare', 'Lungomare', 'Easy', 'e'], ['spacca', 'Spaccanapoli', 'Medium', 'm'], ['plebiscito', 'Piazza del Plebiscito', 'Hard', 'h'], ['vesuvio', 'Vesuvio', 'Very hard', 'x'], ['stadio', 'Stadio', 'Final', 'x']],
-    milano: [['castello', 'Castello Sforzesco', 'Easy', 'e'], ['navigli', 'Navigli', 'Medium', 'm'], ['corso', 'Galleria and Corso', 'Hard', 'h'], ['sansiro', 'San Siro', 'Very hard', 'x'], ['duomo', 'Duomo', 'Final', 'x']]
+    milano: [['castello', 'Castello Sforzesco', 'Easy', 'e'], ['navigli', 'Navigli', 'Medium', 'm'], ['galleria', 'Galleria e Corso', 'Hard', 'h'], ['sansiro', 'San Siro', 'Very hard', 'x'], ['duomo', 'Duomo', 'Final', 'x']]
   };
   var PLAYABLE = { roma: ['game.html', 0], napoli: ['napoli.html', 1], milano: ['milano.html', 4] };
   var WINS = {};
@@ -520,7 +525,7 @@ select { font: 700 1.7cqw var(--font-display); color: var(--ink); background: #f
   }
   function renderAlbum() {
     $('#album').innerHTML = CITIES.map(function (c, i) {
-      var open = c[2] || premium || (OPEN_ALL && !!PLAYABLE[c[0]]);
+      var open = c[2] || premium;
       return '<button class="card' + (open ? '' : ' lock') + '" data-city="' + i + '"><div class="art">' + art(c[0]) + '</div><div class="nm">' + c[1] + (open ? (STG[c[0]] ? '<small>' + cityStars(i) + '/' + (STG[c[0]].length * 3) + ' ★</small>' : '<small>soon</small>') : '') + '</div>' +
         (open ? (cityStars(i) > 0 ? STAMP : (STG[c[0]] ? '' : '<div class="tag wip">WORK IN PROGRESS</div>')) : '<div class="tag">' + LOCK + 'PREMIUM</div>') + '</button>';
     }).join('');
@@ -598,7 +603,7 @@ select { font: 700 1.7cqw var(--font-display); color: var(--ink); background: #f
     if (t.hasAttribute('data-close')) return $$('.modal').forEach(function (m) { m.classList.remove('on'); });
     if (t.dataset.city != null) {
       var c = CITIES[+t.dataset.city];
-      if (c[2] || premium || (OPEN_ALL && PLAYABLE[c[0]])) { if (!PLAYABLE[c[0]]) { toast(c[1] + ' — work in progress, coming soon'); return; } loadWins(); renderStages(+t.dataset.city); return go('stages'); }
+      if (c[2] || premium) { if (!PLAYABLE[c[0]]) { toast(c[1] + ' — work in progress, coming soon'); return; } loadWins(); renderStages(+t.dataset.city); return go('stages'); }
       $('#lockTxt').textContent = c[1] + ' is part of the Premium Pass, together with 5 other cities.'; return modal('lock', true);
     }
     if (t.id === 'tutReplay') { try { localStorage.removeItem('pfi-tut'); } catch (e) {} toast('Tutorial will start in Circo Massimo'); return; }
